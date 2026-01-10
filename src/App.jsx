@@ -247,7 +247,7 @@ export default function App() {
             rel="noopener noreferrer"
             className="cta-button"
           >
-           Get a clout enhancer today
+           Get a cat today
           </a>
         </div>
       </div>
