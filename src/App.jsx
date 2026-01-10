@@ -31,8 +31,8 @@ export default function App() {
           display: flex;
           flex-direction: column;
           align-items: center;
-          justify-content: center;
-          padding: 5rem 1rem 2rem;
+          justify-content: flex-start;
+          padding: 6rem 1rem 2rem;
           background: 
             radial-gradient(ellipse at 50% 0%, rgba(236, 72, 153, 0.15) 0%, transparent 50%),
             radial-gradient(ellipse at 0% 100%, rgba(139, 92, 246, 0.1) 0%, transparent 40%),
@@ -40,9 +40,18 @@ export default function App() {
             #050505;
         }
         
+        .content-wrapper {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          flex: 1;
+          width: 100%;
+        }
+        
         .image-container {
           position: relative;
-          margin-bottom: 2rem;
+          margin-bottom: 1.5rem;
           animation: float 6s ease-in-out infinite;
         }
         
@@ -59,7 +68,7 @@ export default function App() {
           position: relative;
           z-index: 1;
           width: 100%;
-          max-width: min(320px, 70vw);
+          max-width: min(260px, 60vw);
           height: auto;
           border-radius: 16px;
           display: block;
@@ -70,12 +79,12 @@ export default function App() {
         
         .copy {
           text-align: center;
-          margin-bottom: 2rem;
+          margin-bottom: 1.25rem;
         }
         
         .headline {
           font-family: 'Dela Gothic One', Impact, sans-serif;
-          font-size: clamp(1.5rem, 5vw, 2.5rem);
+          font-size: clamp(1.4rem, 4vw, 2.2rem);
           text-transform: uppercase;
           line-height: 1.3;
           margin-bottom: 0.75rem;
@@ -179,6 +188,33 @@ export default function App() {
           border-color: rgba(255, 255, 255, 0.4);
           transform: translateY(-2px);
         }
+        
+        /* Mobile: More dramatic floating animation */
+        @keyframes float-mobile {
+          0%, 100% { transform: translateY(0) rotate(0deg); }
+          25% { transform: translateY(-18px) rotate(1deg); }
+          50% { transform: translateY(-25px) rotate(0deg); }
+          75% { transform: translateY(-18px) rotate(-1deg); }
+        }
+        
+        @media (max-width: 600px) {
+          .image-container {
+            margin-bottom: 1.5rem;
+            animation: float-mobile 4s ease-in-out infinite;
+          }
+          
+          .main-image {
+            max-width: min(280px, 80vw);
+          }
+          
+          .copy {
+            margin-bottom: 1.5rem;
+          }
+          
+          .headline {
+            font-size: clamp(1.3rem, 7vw, 2rem);
+          }
+        }
       `}</style>
       
       <div className="app">
@@ -187,32 +223,33 @@ export default function App() {
           <a href="#" className="shop-button">Shop</a>
         </nav>
         
-        <div className="image-container">
-          <div className="image-glow" />
-          <img 
-            src="/walt-kitty.png" 
-            alt="Guy in I Love Kitties hoodie surrounded by adoring girls" 
-            className="main-image"
-          />
+        <div className="content-wrapper">
+          <div className="image-container">
+            <div className="image-glow" />
+            <img 
+              src="/walt-kitty.png" 
+              alt="Guy in I Love Kitties hoodie surrounded by adoring girls" 
+              className="main-image"
+            />
+          </div>
+          
+          <div className="copy">
+            <h1 className="headline">
+              <span className="headline-1">Girls love cats.</span>
+              <span className="headline-2">Girls love guys that love cats.</span>
+            </h1>
+            <p className="subtext">It's science.</p>
+          </div>
+          
+          <a 
+            href="https://www.petfinder.com/cat-adoption/" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="cta-button"
+          >
+           Get a clout enhancer today
+          </a>
         </div>
-        
-        <div className="copy">
-          <h1 className="headline">
-            <span className="headline-1">Girls love cats.</span>
-            <span className="headline-2">Girls love guys that love cats.</span>
-          </h1>
-          <p className="subtext">It's science.</p>
-        </div>
-        
-        <a 
-          href="https://www.petfinder.com/cat-adoption/" 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="cta-button"
-        >
-          <span className="emoji">🐱</span>
-          Adopt a Cat Today
-        </a>
       </div>
     </>
   )
