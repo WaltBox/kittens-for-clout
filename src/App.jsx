@@ -189,18 +189,11 @@ export default function App() {
           transform: translateY(-2px);
         }
         
-        /* Mobile: More dramatic floating animation */
-        @keyframes float-mobile {
-          0%, 100% { transform: translateY(0) rotate(0deg); }
-          25% { transform: translateY(-18px) rotate(1deg); }
-          50% { transform: translateY(-25px) rotate(0deg); }
-          75% { transform: translateY(-18px) rotate(-1deg); }
-        }
-        
+        /* Mobile: No animation */
         @media (max-width: 600px) {
           .image-container {
             margin-bottom: 1.5rem;
-            animation: float-mobile 4s ease-in-out infinite;
+            animation: none;
           }
           
           .main-image {
