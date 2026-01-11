@@ -27,12 +27,6 @@ export default function App() {
         }
         
         .app {
-          min-height: 100vh;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: flex-start;
-          padding: 6rem 1rem 2rem;
           background: 
             radial-gradient(ellipse at 50% 0%, rgba(236, 72, 153, 0.15) 0%, transparent 50%),
             radial-gradient(ellipse at 0% 100%, rgba(139, 92, 246, 0.1) 0%, transparent 40%),
@@ -40,13 +34,13 @@ export default function App() {
             #050505;
         }
         
-        .content-wrapper {
+        .hero {
+          min-height: 100vh;
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          flex: 1;
-          width: 100%;
+          padding: 5rem 1rem 2rem;
         }
         
         .image-container {
@@ -191,6 +185,70 @@ export default function App() {
           transform: translateY(-2px);
         }
         
+        /* Footer */
+        .footer {
+          width: 100%;
+          padding: 4rem 2rem 2rem;
+          text-align: center;
+          background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.5));
+          border-top: 1px solid rgba(255, 255, 255, 0.1);
+          margin-top: 4rem;
+        }
+        
+        .footer-content {
+          max-width: 900px;
+          margin: 0 auto;
+        }
+        
+        .footer-image {
+          width: 100%;
+          max-width: 500px;
+          height: auto;
+          border-radius: 16px;
+          margin: 0 auto 2rem;
+          display: block;
+          opacity: 0.95;
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+        }
+        
+        .footer-title {
+          font-family: 'Dela Gothic One', system-ui, sans-serif;
+          font-size: clamp(1.2rem, 3vw, 1.5rem);
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+          color: #c4b5fd;
+          margin-bottom: 1.5rem;
+        }
+        
+        .footer-links {
+          display: flex;
+          justify-content: center;
+          gap: 2rem;
+          margin-bottom: 2rem;
+          flex-wrap: wrap;
+        }
+        
+        .footer-link {
+          font-family: system-ui, sans-serif;
+          font-size: 0.9rem;
+          color: rgba(255, 255, 255, 0.6);
+          text-decoration: none;
+          transition: color 0.3s ease;
+        }
+        
+        .footer-link:hover {
+          color: #f9a8d4;
+        }
+        
+        .footer-copyright {
+          font-family: system-ui, sans-serif;
+          font-size: 0.75rem;
+          color: rgba(255, 255, 255, 0.4);
+          margin-top: 1.5rem;
+          padding-top: 1.5rem;
+          border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
         /* Mobile: No animation */
         @media (max-width: 600px) {
           .image-container {
@@ -209,6 +267,26 @@ export default function App() {
           .headline {
             font-size: clamp(1.3rem, 7vw, 2rem);
           }
+          
+          .footer {
+            padding: 3rem 1.5rem 1.5rem;
+            margin-top: 2rem;
+          }
+          
+          .footer-image {
+            max-width: 100%;
+            margin-bottom: 1.5rem;
+          }
+          
+          .footer-links {
+            gap: 1.5rem;
+            font-size: 0.85rem;
+          }
+          
+          .footer-title {
+            font-size: clamp(1rem, 4vw, 1.2rem);
+            margin-bottom: 1rem;
+          }
         }
       `}</style>
       
@@ -218,7 +296,7 @@ export default function App() {
           <a href="#" className="shop-button">Shop</a>
         </nav>
         
-        <div className="content-wrapper">
+        <section className="hero">
           <div className="image-container">
             <div className="image-glow" />
             <img 
@@ -244,7 +322,27 @@ export default function App() {
           >
            Get a cat today
           </a>
-        </div>
+        </section>
+        
+        <footer className="footer">
+          <div className="footer-content">
+            <img 
+              src="/adam-thingy.png" 
+              alt="The Creation of Clout - Divine cat bestowing clout upon man" 
+              className="footer-image"
+            />
+            <h2 className="footer-title">The Divine Truth</h2>
+            <nav className="footer-links">
+              <a href="/" className="footer-link">Home</a>
+              <a href="#" className="footer-link">Shop</a>
+              <a href="https://www.petfinder.com/search/cats-for-adoption/" target="_blank" rel="noopener noreferrer" className="footer-link">Adopt a Cat</a>
+              <a href="#" className="footer-link">About</a>
+            </nav>
+            <p className="footer-copyright">
+              © 2026 Kittens For Clout. All clout reserved.
+            </p>
+          </div>
+        </footer>
       </div>
     </>
   )
