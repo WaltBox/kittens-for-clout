@@ -93,11 +93,13 @@ export default function App() {
         .headline-1 {
           color: #f9a8d4;
           display: block;
+          font-size: 0.7em;
         }
         
         .headline-2 {
           color: #c4b5fd;
           display: block;
+          font-size: 1em;
         }
         
         .subtext {
