@@ -237,7 +237,7 @@ export default function App() {
           </div>
           
           <a 
-            href="https://www.petfinder.com/cat-adoption/" 
+            href="https://www.petfinder.com/search/cats-for-adoption/us/tx/dallas/?age=Baby&distance=25" 
             target="_blank" 
             rel="noopener noreferrer"
             className="cta-button"
