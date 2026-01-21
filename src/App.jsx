@@ -1,4 +1,8 @@
+import { useState } from 'react'
+
 export default function App() {
+  const [currentPage, setCurrentPage] = useState('home')
+  
   return (
     <>
       <style>{`
@@ -24,6 +28,27 @@ export default function App() {
         @keyframes glow {
           0%, 100% { opacity: 0.6; }
           50% { opacity: 1; }
+        }
+        
+        @keyframes countUp {
+          0% { transform: translateY(20px); opacity: 0; }
+          100% { transform: translateY(0); opacity: 1; }
+        }
+        
+        @keyframes pulse {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.05); }
+        }
+        
+        @keyframes slideIn {
+          0% { transform: translateX(-30px); opacity: 0; }
+          100% { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes gradientShift {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
         }
         
         .app {
@@ -185,6 +210,377 @@ export default function App() {
           transform: translateY(-2px);
         }
         
+        /* Stats Section */
+        .stats-section {
+          padding: 6rem 2rem;
+          position: relative;
+          overflow: hidden;
+          background: 
+            radial-gradient(ellipse at 50% 50%, rgba(236, 72, 153, 0.08) 0%, transparent 60%),
+            linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(139, 92, 246, 0.05) 50%, rgba(0,0,0,0) 100%);
+        }
+        
+        .stats-section::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 1px;
+          background: linear-gradient(90deg, transparent, rgba(236, 72, 153, 0.5), rgba(139, 92, 246, 0.5), transparent);
+        }
+        
+        .stats-section::after {
+          content: '';
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          height: 1px;
+          background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.5), rgba(59, 130, 246, 0.5), transparent);
+        }
+        
+        .stats-container {
+          max-width: 900px;
+          margin: 0 auto;
+          text-align: center;
+        }
+        
+        .stats-eyebrow {
+          font-family: system-ui, sans-serif;
+          font-size: 0.85rem;
+          text-transform: uppercase;
+          letter-spacing: 0.3em;
+          color: rgba(255, 255, 255, 0.5);
+          margin-bottom: 1.5rem;
+          animation: slideIn 0.8s ease-out both;
+        }
+        
+        .stats-number-wrapper {
+          position: relative;
+          display: inline-block;
+          margin-bottom: 1rem;
+        }
+        
+        .stats-number {
+          font-family: 'Dela Gothic One', Impact, sans-serif;
+          font-size: clamp(5rem, 20vw, 12rem);
+          line-height: 1;
+          background: linear-gradient(135deg, #f472b6 0%, #e879f9 25%, #c084fc 50%, #a78bfa 75%, #818cf8 100%);
+          background-size: 200% 200%;
+          -webkit-background-clip: text;
+          background-clip: text;
+          -webkit-text-fill-color: transparent;
+          animation: 
+            countUp 1s ease-out both,
+            gradientShift 4s ease infinite;
+          filter: drop-shadow(0 0 60px rgba(232, 121, 249, 0.4));
+        }
+        
+        .stats-number::after {
+          content: '+';
+          font-size: 0.5em;
+          vertical-align: super;
+        }
+        
+        .stats-glow {
+          position: absolute;
+          inset: -20%;
+          background: radial-gradient(circle, rgba(232, 121, 249, 0.2) 0%, transparent 70%);
+          z-index: -1;
+          animation: pulse 3s ease-in-out infinite;
+        }
+        
+        .stats-label {
+          font-family: 'Dela Gothic One', Impact, sans-serif;
+          font-size: clamp(1.2rem, 4vw, 2rem);
+          text-transform: uppercase;
+          color: #fff;
+          margin-bottom: 1rem;
+          animation: countUp 1s ease-out 0.2s both;
+        }
+        
+        .stats-sublabel {
+          font-family: 'Dela Gothic One', system-ui, sans-serif;
+          font-size: clamp(0.9rem, 2.5vw, 1.3rem);
+          text-transform: uppercase;
+          background: linear-gradient(90deg, #f9a8d4, #c4b5fd);
+          -webkit-background-clip: text;
+          background-clip: text;
+          -webkit-text-fill-color: transparent;
+          margin-bottom: 2rem;
+          animation: countUp 1s ease-out 0.3s both;
+        }
+        
+        .stats-description {
+          font-family: system-ui, sans-serif;
+          font-size: clamp(0.9rem, 2vw, 1.1rem);
+          color: rgba(255, 255, 255, 0.5);
+          max-width: 500px;
+          margin: 0 auto 2rem;
+          line-height: 1.6;
+          animation: countUp 1s ease-out 0.4s both;
+        }
+        
+        .stats-pills {
+          display: flex;
+          justify-content: center;
+          gap: 1rem;
+          flex-wrap: wrap;
+          animation: countUp 1s ease-out 0.5s both;
+        }
+        
+        .stats-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.5rem;
+          padding: 0.6rem 1.2rem;
+          font-family: system-ui, sans-serif;
+          font-size: 0.85rem;
+          color: rgba(255, 255, 255, 0.8);
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 50px;
+          transition: all 0.3s ease;
+        }
+        
+        .stats-pill:hover {
+          background: rgba(255, 255, 255, 0.1);
+          border-color: rgba(236, 72, 153, 0.5);
+          transform: translateY(-2px);
+        }
+        
+        .pill-icon {
+          font-size: 1.1em;
+        }
+        
+        @media (max-width: 600px) {
+          .stats-section {
+            padding: 4rem 1.5rem;
+          }
+          
+          .stats-number {
+            font-size: clamp(4rem, 25vw, 6rem);
+          }
+          
+          .stats-pills {
+            gap: 0.75rem;
+          }
+          
+          .stats-pill {
+            padding: 0.5rem 1rem;
+            font-size: 0.8rem;
+          }
+        }
+        
+        /* Shop Page */
+        .shop-page {
+          min-height: 100vh;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 6rem 2rem;
+          position: relative;
+          overflow: hidden;
+        }
+        
+        .shop-page::before {
+          content: '';
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 600px;
+          height: 600px;
+          background: radial-gradient(circle, rgba(236, 72, 153, 0.15) 0%, rgba(139, 92, 246, 0.1) 40%, transparent 70%);
+          animation: pulse 4s ease-in-out infinite;
+        }
+        
+        .shop-content {
+          position: relative;
+          z-index: 1;
+          text-align: center;
+          max-width: 600px;
+        }
+        
+        .shop-icon {
+          font-size: clamp(4rem, 15vw, 8rem);
+          margin-bottom: 2rem;
+          animation: float 4s ease-in-out infinite;
+          filter: drop-shadow(0 0 30px rgba(236, 72, 153, 0.5));
+        }
+        
+        .shop-title {
+          font-family: 'Dela Gothic One', Impact, sans-serif;
+          font-size: clamp(2.5rem, 10vw, 5rem);
+          text-transform: uppercase;
+          line-height: 1.1;
+          margin-bottom: 1.5rem;
+          background: linear-gradient(135deg, #f472b6 0%, #e879f9 30%, #c084fc 60%, #a78bfa 100%);
+          background-size: 200% 200%;
+          -webkit-background-clip: text;
+          background-clip: text;
+          -webkit-text-fill-color: transparent;
+          animation: gradientShift 4s ease infinite;
+        }
+        
+        .shop-subtitle {
+          font-family: 'Dela Gothic One', system-ui, sans-serif;
+          font-size: clamp(1rem, 3vw, 1.5rem);
+          text-transform: uppercase;
+          letter-spacing: 0.2em;
+          color: rgba(255, 255, 255, 0.6);
+          margin-bottom: 2rem;
+        }
+        
+        .shop-description {
+          font-family: system-ui, sans-serif;
+          font-size: clamp(1rem, 2vw, 1.2rem);
+          color: rgba(255, 255, 255, 0.5);
+          line-height: 1.7;
+          margin-bottom: 3rem;
+        }
+        
+        .shop-notify-form {
+          display: flex;
+          gap: 1rem;
+          justify-content: center;
+          flex-wrap: wrap;
+          margin-bottom: 2rem;
+        }
+        
+        .shop-email-input {
+          padding: 1rem 1.5rem;
+          font-family: system-ui, sans-serif;
+          font-size: 1rem;
+          color: #fff;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          border-radius: 50px;
+          outline: none;
+          min-width: 280px;
+          transition: all 0.3s ease;
+        }
+        
+        .shop-email-input::placeholder {
+          color: rgba(255, 255, 255, 0.4);
+        }
+        
+        .shop-email-input:focus {
+          border-color: rgba(236, 72, 153, 0.6);
+          background: rgba(255, 255, 255, 0.08);
+          box-shadow: 0 0 20px rgba(236, 72, 153, 0.2);
+        }
+        
+        .shop-notify-btn {
+          padding: 1rem 2rem;
+          font-family: 'Dela Gothic One', system-ui, sans-serif;
+          font-size: 0.9rem;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          color: #000;
+          background: linear-gradient(135deg, #f9a8d4 0%, #e879f9 50%, #c4b5fd 100%);
+          background-size: 200% 200%;
+          border: none;
+          border-radius: 50px;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          animation: shimmer 4s linear infinite;
+        }
+        
+        .shop-notify-btn:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 8px 30px rgba(232, 121, 249, 0.5);
+        }
+        
+        .shop-teaser {
+          display: flex;
+          justify-content: center;
+          gap: 2rem;
+          flex-wrap: wrap;
+          margin-top: 3rem;
+        }
+        
+        .teaser-item {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 0.5rem;
+          padding: 1.5rem;
+          background: rgba(255, 255, 255, 0.03);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 16px;
+          transition: all 0.3s ease;
+        }
+        
+        .teaser-item:hover {
+          background: rgba(255, 255, 255, 0.06);
+          border-color: rgba(236, 72, 153, 0.3);
+          transform: translateY(-5px);
+        }
+        
+        .teaser-icon {
+          font-size: 2.5rem;
+          margin-bottom: 0.5rem;
+        }
+        
+        .teaser-name {
+          font-family: 'Dela Gothic One', system-ui, sans-serif;
+          font-size: 0.85rem;
+          text-transform: uppercase;
+          color: #fff;
+        }
+        
+        .teaser-price {
+          font-family: system-ui, sans-serif;
+          font-size: 0.8rem;
+          color: rgba(255, 255, 255, 0.4);
+        }
+        
+        .back-link {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.5rem;
+          margin-top: 3rem;
+          font-family: system-ui, sans-serif;
+          font-size: 0.9rem;
+          color: rgba(255, 255, 255, 0.5);
+          text-decoration: none;
+          transition: color 0.3s ease;
+          cursor: pointer;
+          background: none;
+          border: none;
+        }
+        
+        .back-link:hover {
+          color: #f9a8d4;
+        }
+        
+        @media (max-width: 600px) {
+          .shop-page {
+            padding: 5rem 1.5rem;
+          }
+          
+          .shop-notify-form {
+            flex-direction: column;
+            align-items: center;
+          }
+          
+          .shop-email-input {
+            min-width: 100%;
+            max-width: 300px;
+          }
+          
+          .shop-teaser {
+            gap: 1rem;
+          }
+          
+          .teaser-item {
+            padding: 1rem;
+          }
+        }
+        
         /* Footer */
         .footer {
           width: 100%;
@@ -292,10 +688,12 @@ export default function App() {
       
       <div className="app">
         <nav className="navbar">
-          <a href="/" className="logo">Kittens For Clout</a>
-          <a href="#" className="shop-button">Shop</a>
+          <button onClick={() => setCurrentPage('home')} className="logo" style={{ background: 'none', border: 'none', cursor: 'pointer' }}>Kittens For Clout</button>
+          <button onClick={() => setCurrentPage('shop')} className="shop-button" style={{ cursor: 'pointer' }}>Shop</button>
         </nav>
         
+        {currentPage === 'home' ? (
+          <>
         <section className="hero">
           <div className="image-container">
             <div className="image-glow" />
@@ -324,6 +722,35 @@ export default function App() {
           </a>
         </section>
         
+        <section className="stats-section">
+          <div className="stats-container">
+            <p className="stats-eyebrow">The numbers don't lie</p>
+            <div className="stats-number-wrapper">
+              <div className="stats-glow" />
+              <span className="stats-number">500%</span>
+            </div>
+            <h2 className="stats-label">More Dating App Likes</h2>
+            <p className="stats-sublabel">When theres a cute little kitty cat in your profile</p>
+            <p className="stats-description">
+              Real talk: pics with cats hit different. The algorithm knows. The girlies know. Now you know.
+            </p>
+            <div className="stats-pills">
+              <span className="stats-pill">
+                <span className="pill-icon">🔥</span>
+                Tinder verified
+              </span>
+              <span className="stats-pill">
+                <span className="pill-icon">💜</span>
+                Hinge approved
+              </span>
+              <span className="stats-pill">
+                <span className="pill-icon">🐱</span>
+                Cat certified
+              </span>
+            </div>
+          </div>
+        </section>
+        
         <footer className="footer">
           <div className="footer-content">
             <img 
@@ -333,16 +760,63 @@ export default function App() {
             />
             <h2 className="footer-title">The Divine Truth</h2>
             <nav className="footer-links">
-              <a href="/" className="footer-link">Home</a>
-              <a href="#" className="footer-link">Shop</a>
+              <button onClick={() => setCurrentPage('home')} className="footer-link" style={{ background: 'none', border: 'none', cursor: 'pointer' }}>Home</button>
+              <button onClick={() => setCurrentPage('shop')} className="footer-link" style={{ background: 'none', border: 'none', cursor: 'pointer' }}>Shop</button>
               <a href="https://www.petfinder.com/search/cats-for-adoption/" target="_blank" rel="noopener noreferrer" className="footer-link">Adopt a Cat</a>
-              <a href="#" className="footer-link">About</a>
+              <button className="footer-link" style={{ background: 'none', border: 'none', cursor: 'pointer' }}>About</button>
             </nav>
             <p className="footer-copyright">
               © 2026 Kittens For Clout. All clout reserved.
             </p>
           </div>
         </footer>
+          </>
+        ) : (
+          <section className="shop-page">
+            <div className="shop-content">
+              <div className="shop-icon">🛍️</div>
+              <h1 className="shop-title">Coming Soon</h1>
+              <p className="shop-subtitle">The drip is loading</p>
+              <p className="shop-description">
+                We're cooking up some absolute heat. Hoodies, tees, and accessories 
+                that'll have the kitties AND the girlies obsessed. Sign up to be the 
+                first to know when we drop.
+              </p>
+              
+              <form className="shop-notify-form" onSubmit={(e) => { e.preventDefault(); alert('You\'re on the list! 🐱'); }}>
+                <input 
+                  type="email" 
+                  placeholder="Enter your email" 
+                  className="shop-email-input"
+                  required
+                />
+                <button type="submit" className="shop-notify-btn">Notify Me</button>
+              </form>
+              
+              <div className="shop-teaser">
+                <div className="teaser-item">
+                  <span className="teaser-icon">👕</span>
+                  <span className="teaser-name">I ❤️ Kitties Tee</span>
+                  <span className="teaser-price">$35</span>
+                </div>
+                <div className="teaser-item">
+                  <span className="teaser-icon">🧥</span>
+                  <span className="teaser-name">Clout Hoodie</span>
+                  <span className="teaser-price">$65</span>
+                </div>
+                <div className="teaser-item">
+                  <span className="teaser-icon">🧢</span>
+                  <span className="teaser-name">Cat Dad Cap</span>
+                  <span className="teaser-price">$28</span>
+                </div>
+              </div>
+              
+              <button onClick={() => setCurrentPage('home')} className="back-link">
+                ← Back to Home
+              </button>
+            </div>
+          </section>
+        )}
       </div>
     </>
   )
