@@ -385,30 +385,11 @@ export default function App() {
           overflow: hidden;
         }
         
-        .shop-page::before {
-          content: '';
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          width: 600px;
-          height: 600px;
-          background: radial-gradient(circle, rgba(236, 72, 153, 0.15) 0%, rgba(139, 92, 246, 0.1) 40%, transparent 70%);
-          animation: pulse 4s ease-in-out infinite;
-        }
-        
         .shop-content {
           position: relative;
           z-index: 1;
           text-align: center;
-          max-width: 600px;
-        }
-        
-        .shop-icon {
-          font-size: clamp(4rem, 15vw, 8rem);
-          margin-bottom: 2rem;
-          animation: float 4s ease-in-out infinite;
-          filter: drop-shadow(0 0 30px rgba(236, 72, 153, 0.5));
+          max-width: 700px;
         }
         
         .shop-title {
@@ -431,7 +412,14 @@ export default function App() {
           text-transform: uppercase;
           letter-spacing: 0.2em;
           color: rgba(255, 255, 255, 0.6);
-          margin-bottom: 2rem;
+          margin-bottom: 1rem;
+        }
+        
+        .shop-mission {
+          font-family: system-ui, sans-serif;
+          font-size: clamp(0.8rem, 1.8vw, 0.95rem);
+          color: rgba(255, 255, 255, 0.35);
+          letter-spacing: 0.05em;
         }
         
         .shop-description {
@@ -497,64 +485,126 @@ export default function App() {
         .shop-teaser {
           display: flex;
           justify-content: center;
-          gap: 2rem;
+          gap: 4rem;
           flex-wrap: wrap;
-          margin-top: 3rem;
+          margin-top: 5rem;
+          perspective: 1000px;
         }
         
         .teaser-item {
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: 0.5rem;
-          padding: 1.5rem;
-          background: rgba(255, 255, 255, 0.03);
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          border-radius: 16px;
-          transition: all 0.3s ease;
+          transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
         }
         
         .teaser-item:hover {
-          background: rgba(255, 255, 255, 0.06);
-          border-color: rgba(236, 72, 153, 0.3);
-          transform: translateY(-5px);
+          transform: scale(1.08);
         }
         
-        .teaser-icon {
-          font-size: 2.5rem;
-          margin-bottom: 0.5rem;
+        .teaser-item:hover .teaser-shirt {
+          transform: rotateY(-8deg) rotateX(5deg) translateY(-15px);
+        }
+        
+        .teaser-item:hover .teaser-shirt::before {
+          opacity: 1;
+        }
+        
+        .teaser-item:hover .teaser-shirt img {
+          filter: drop-shadow(0 30px 50px rgba(236, 72, 153, 0.5)) 
+                  drop-shadow(0 0 20px rgba(139, 92, 246, 0.3));
+        }
+        
+        .teaser-item:hover .shirt-gleam {
+          opacity: 1;
+          left: 150%;
+        }
+        
+        .teaser-item:hover .teaser-name {
+          color: rgba(255, 255, 255, 0.9);
+          text-shadow: 0 0 20px rgba(236, 72, 153, 0.5);
+        }
+        
+        .teaser-shirt {
+          width: 160px;
+          height: auto;
+          position: relative;
+          transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+          transform-style: preserve-3d;
+        }
+        
+        .teaser-shirt::before {
+          content: '';
+          position: absolute;
+          inset: -20px;
+          background: radial-gradient(
+            ellipse at center,
+            rgba(236, 72, 153, 0.2) 0%,
+            rgba(139, 92, 246, 0.1) 40%,
+            transparent 70%
+          );
+          opacity: 0;
+          transition: opacity 0.5s ease;
+          z-index: -1;
+          filter: blur(20px);
+        }
+        
+        .teaser-shirt img {
+          width: 100%;
+          height: auto;
+          filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.6));
+          transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        
+        .shirt-gleam {
+          position: absolute;
+          top: 0;
+          left: -50%;
+          width: 30%;
+          height: 100%;
+          background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(255, 255, 255, 0.4),
+            transparent
+          );
+          transform: skewX(-25deg);
+          transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+          opacity: 0;
+          pointer-events: none;
         }
         
         .teaser-name {
           font-family: 'Dela Gothic One', system-ui, sans-serif;
-          font-size: 0.85rem;
+          font-size: 0.75rem;
           text-transform: uppercase;
-          color: #fff;
-        }
-        
-        .teaser-price {
-          font-family: system-ui, sans-serif;
-          font-size: 0.8rem;
+          letter-spacing: 0.15em;
           color: rgba(255, 255, 255, 0.4);
+          margin-top: 2rem;
+          transition: all 0.4s ease;
         }
         
         .back-link {
           display: inline-flex;
           align-items: center;
           gap: 0.5rem;
-          margin-top: 3rem;
+          margin-top: 4rem;
+          padding: 0.8rem 1.5rem;
           font-family: system-ui, sans-serif;
-          font-size: 0.9rem;
-          color: rgba(255, 255, 255, 0.5);
+          font-size: 0.85rem;
+          color: rgba(255, 255, 255, 0.4);
           text-decoration: none;
-          transition: color 0.3s ease;
+          transition: all 0.3s ease;
           cursor: pointer;
-          background: none;
-          border: none;
+          background: rgba(255, 255, 255, 0.03);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 50px;
         }
         
         .back-link:hover {
-          color: #f9a8d4;
+          color: rgba(255, 255, 255, 0.8);
+          background: rgba(255, 255, 255, 0.06);
+          border-color: rgba(255, 255, 255, 0.15);
         }
         
         @media (max-width: 600px) {
@@ -562,22 +612,13 @@ export default function App() {
             padding: 5rem 1.5rem;
           }
           
-          .shop-notify-form {
-            flex-direction: column;
-            align-items: center;
-          }
-          
-          .shop-email-input {
-            min-width: 100%;
-            max-width: 300px;
-          }
-          
           .shop-teaser {
-            gap: 1rem;
+            gap: 2rem;
           }
           
-          .teaser-item {
-            padding: 1rem;
+          .teaser-shirt {
+            width: 110px;
+            height: 120px;
           }
         }
         
@@ -731,9 +772,7 @@ export default function App() {
             </div>
             <h2 className="stats-label">More Dating App Likes</h2>
             <p className="stats-sublabel">When theres a cute little kitty cat in your profile</p>
-            <p className="stats-description">
-              Real talk: pics with cats hit different. The algorithm knows. The girlies know. Now you know.
-            </p>
+          
             <div className="stats-pills">
               <span className="stats-pill">
                 <span className="pill-icon">🔥</span>
@@ -774,45 +813,36 @@ export default function App() {
         ) : (
           <section className="shop-page">
             <div className="shop-content">
-              <div className="shop-icon">🛍️</div>
               <h1 className="shop-title">Coming Soon</h1>
               <p className="shop-subtitle">The drip is loading</p>
-              <p className="shop-description">
-                We're cooking up some absolute heat. Hoodies, tees, and accessories 
-                that'll have the kitties AND the girlies obsessed. Sign up to be the 
-                first to know when we drop.
-              </p>
-              
-              <form className="shop-notify-form" onSubmit={(e) => { e.preventDefault(); alert('You\'re on the list! 🐱'); }}>
-                <input 
-                  type="email" 
-                  placeholder="Enter your email" 
-                  className="shop-email-input"
-                  required
-                />
-                <button type="submit" className="shop-notify-btn">Notify Me</button>
-              </form>
+              <p className="shop-mission">100% of profits help kittens find new homes</p>
               
               <div className="shop-teaser">
                 <div className="teaser-item">
-                  <span className="teaser-icon">👕</span>
-                  <span className="teaser-name">I ❤️ Kitties Tee</span>
-                  <span className="teaser-price">$35</span>
+                  <div className="teaser-shirt">
+                    <img src="/shirt.png" alt="Kitty Lover Tee" />
+                    <div className="shirt-gleam" />
+                  </div>
+                  <span className="teaser-name">Kitty Lover</span>
                 </div>
                 <div className="teaser-item">
-                  <span className="teaser-icon">🧥</span>
-                  <span className="teaser-name">Clout Hoodie</span>
-                  <span className="teaser-price">$65</span>
+                  <div className="teaser-shirt">
+                    <img src="/shirt.png" alt="Clout Cat Tee" />
+                    <div className="shirt-gleam" />
+                  </div>
+                  <span className="teaser-name">Clout Cat</span>
                 </div>
                 <div className="teaser-item">
-                  <span className="teaser-icon">🧢</span>
-                  <span className="teaser-name">Cat Dad Cap</span>
-                  <span className="teaser-price">$28</span>
+                  <div className="teaser-shirt">
+                    <img src="/shirt.png" alt="Cat Dad Tee" />
+                    <div className="shirt-gleam" />
+                  </div>
+                  <span className="teaser-name">Cat Dad</span>
                 </div>
               </div>
               
               <button onClick={() => setCurrentPage('home')} className="back-link">
-                ← Back to Home
+                ← Back
               </button>
             </div>
           </section>
