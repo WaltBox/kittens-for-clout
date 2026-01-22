@@ -182,12 +182,11 @@ export default function App() {
           font-size: clamp(0.9rem, 3vw, 1.1rem);
           text-transform: uppercase;
           letter-spacing: 0.02em;
-          color: #fff;
           text-decoration: none;
-          background: linear-gradient(90deg, #f9a8d4, #c4b5fd);
-          -webkit-background-clip: text;
-          background-clip: text;
-          -webkit-text-fill-color: transparent;
+          color: #f472b6;
+          background: none;
+          border: none;
+          cursor: pointer;
         }
         
         .shop-button {
