@@ -312,6 +312,14 @@ export default function App() {
           animation: countUp 1s ease-out 0.3s both;
         }
         
+        .stats-bonus {
+          font-family: system-ui, sans-serif;
+          font-size: clamp(0.9rem, 2vw, 1.1rem);
+          color: rgba(255, 255, 255, 0.5);
+          margin-top: 1rem;
+          animation: countUp 1s ease-out 0.5s both;
+        }
+        
         .stats-description {
           font-family: system-ui, sans-serif;
           font-size: clamp(0.9rem, 2vw, 1.1rem);
@@ -770,23 +778,10 @@ export default function App() {
               <div className="stats-glow" />
               <span className="stats-number">500%</span>
             </div>
-            <h2 className="stats-label">More Dating App Likes</h2>
+            <h2 className="stats-label">Increase in Dating App Likes</h2>
             <p className="stats-sublabel">When theres a cute little kitty cat in your profile</p>
-          
-            <div className="stats-pills">
-              <span className="stats-pill">
-                <span className="pill-icon">🔥</span>
-                Tinder verified
-              </span>
-              <span className="stats-pill">
-                <span className="pill-icon">💜</span>
-                Hinge approved
-              </span>
-              <span className="stats-pill">
-                <span className="pill-icon">🐱</span>
-                Cat certified
-              </span>
-            </div>
+            
+            <p className="stats-bonus">+ 100% chance to pull out of your league</p>
           </div>
         </section>
         
