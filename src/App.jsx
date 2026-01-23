@@ -15,6 +15,16 @@ export default function App() {
           background: #000;
         }
         
+        @media (min-width: 768px) {
+          * {
+            cursor: url("/cat-cursor.png"), auto;
+          }
+          
+          a, button {
+            cursor: url("/cat-cursor.png"), pointer;
+          }
+        }
+        
         @keyframes float {
           0%, 100% { transform: translateY(0); }
           50% { transform: translateY(-12px); }
