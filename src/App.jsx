@@ -2,11 +2,126 @@ import { useState } from 'react'
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState('home')
+  const [kittenName, setKittenName] = useState('')
+  const [kittenHeight, setKittenHeight] = useState('')
+  const [kittenMatches, setKittenMatches] = useState('')
+  const [isCalculating, setIsCalculating] = useState(false)
+  const [result, setResult] = useState(null)
+  const [isShort, setIsShort] = useState(false)
+  
+  // Parse height and check if below 5'5"
+  const checkHeight = (heightStr) => {
+    setKittenHeight(heightStr)
+    const cleanHeight = heightStr.toLowerCase().replace(/[""]/g, "'").trim()
+    
+    // Only check if the height looks "complete" - must have feet AND inches specified
+    // Match patterns like: 5'4, 5'10, 5'4", 5ft4, 5ft 4, 5 ft 4, etc.
+    // The key is: we need BOTH a feet number AND an inches number
+    const completeHeightMatch = cleanHeight.match(/^(\d+)['\s]*(?:ft)?['\s]*(\d+)['"]?$/)
+    
+    if (completeHeightMatch) {
+      const feet = parseInt(completeHeightMatch[1])
+      const inches = parseInt(completeHeightMatch[2])
+      
+      // Make sure it looks like a real height (feet should be 4-7, inches 0-11)
+      if (feet >= 4 && feet <= 7 && inches >= 0 && inches <= 11) {
+        const totalInches = (feet * 12) + inches
+        setIsShort(totalInches < 65) // 5'5" = 65 inches
+        return
+      }
+    }
+    
+    // Also check for just inches format like "64" (must be 48-84 range to be valid)
+    const justInchesMatch = cleanHeight.match(/^(\d{2})$/)
+    if (justInchesMatch) {
+      const totalInches = parseInt(justInchesMatch[1])
+      if (totalInches >= 48 && totalInches <= 84) {
+        setIsShort(totalInches < 65)
+        return
+      }
+    }
+    
+    setIsShort(false)
+  }
+  
+  const getPersonalResponse = (name, height, matches) => {
+    const responses = [
+      `${name}, analysis complete. No cat detected. This explains a lot.`,
+      `Bro ${name}, at ${height}, you need every advantage you can get. A cat is the advantage.`,
+      `${name}, current status: single. Probable cause: no kitten energy.`,
+      `Our AI ran your profile. Solid human. Missing companion animal.`,
+      `Bro ${name}, ${height} is fine. But fine doesn't pull. Cats pull.`,
+      `${name}, women are not confused by you. They're confused why you don't have a cat.`,
+      `Analysis result: your vibe is neutral. A kitten would make it elite.`,
+      `Bro ${name}, without a cat, girls are guessing. With a cat, they *know*.`,
+      `${name}, our model flagged "no pet = no emotional shortcut." Get a cat.`,
+      `At ${height}, you need warmth. A kitten provides warmth. This is science.`,
+      `Bro ${name}, girls aren't ignoring you. They're waiting for the cat arc.`,
+      `${name}, right now you look responsible. A cat would make you lovable.`,
+      `Our AI tested two versions of you. The cat version won easily.`,
+      `Bro ${name}, a kitten would do more for your dating life than a bio rewrite.`,
+      `${name}, no cat means women assume you don't own cozy furniture.`,
+      `Analysis shows potential, ${name}. Cat would unlock it.`,
+      `Bro ${name}, ${height} plus a kitten is a dangerous combo. Use it.`,
+      `${name}, girls trust men who keep small animals alive. You need proof.`,
+      `Right now ${name}, women see "maybe." A cat turns it into "wait."`,
+      `Bro ${name}, the cat is the difference between "seems fine" and "I like him."`,
+      `${name}, our AI flagged "no kitten presence." This is holding you back.`,
+      `At ${height}, you're not intimidating. You're just missing a cat.`,
+      `Bro ${name}, women want cozy. You are not cozy yet.`,
+      `${name}, adding a cat would immediately raise your trust score.`,
+      `Our model shows girls asking about pets before asking about jobs. Act accordingly.`,
+      `Bro ${name}, no cat means your profile ends too soon.`,
+      `${name}, women imagine future pets faster than future dates. Fix that.`,
+      `At ${height}, personality matters. Cats are personality multipliers.`,
+      `Bro ${name}, the kitten would be your best wingman and you know it.`,
+      `${name}, right now girls are scrolling calmly. A cat would disrupt that.`,
+      `Analysis complete: you're one fluffy decision away from better outcomes.`,
+      `Bro ${name}, women trust men with cats more than men with opinions.`,
+      `${name}, no cat = no "aww" moment. You need an "aww" moment.`,
+      `Our AI predicts increased replies immediately after cat acquisition.`,
+      `Bro ${name}, cats communicate softness. Softness is in.`,
+      `${name}, ${height} is irrelevant once a kitten enters the equation.`,
+      `Right now ${name}, girls don't know what dating you feels like. A cat shows them.`,
+      `Bro ${name}, the kitten would answer questions you don't even get asked.`,
+      `${name}, our model labeled your situation as "fixable with cat."`,
+      `At ${height}, vibes beat stats. Cats are pure vibes.`,
+      `Bro ${name}, women want proof you're safe. A cat is proof.`,
+      `${name}, no kitten means you're relying on words. Bad strategy.`,
+      `Our AI suggests a cat as a low-effort, high-return upgrade.`,
+      `Bro ${name}, the kitten would make you feel familiar in a good way.`,
+      `${name}, women trust cat guys faster. This is not up for debate.`,
+      `Final verdict: you don't need a rebrand. You need a cat.`,
+    ]
+    return responses[Math.floor(Math.random() * responses.length)]
+  }
+  
+  const calculateKitten = () => {
+    if (!kittenName || !kittenHeight || !kittenMatches) return
+    setIsCalculating(true)
+    setResult(null)
+    
+    setTimeout(() => {
+      const currentMatches = parseInt(kittenMatches) || 5
+      const multiplier = (Math.random() * 3 + 4).toFixed(1) // 4x to 7x
+      const projectedMatches = Math.round(currentMatches * parseFloat(multiplier))
+      const personalReason = getPersonalResponse(kittenName, kittenHeight, currentMatches)
+      
+      setResult({ 
+        name: kittenName,
+        currentMatches,
+        projectedMatches,
+        multiplier,
+        reason: personalReason
+      })
+      setIsCalculating(false)
+    }, 2500)
+  }
   
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Dela+Gothic+One&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=JetBrains+Mono:wght@400;500&display=swap');
         
         * { box-sizing: border-box; margin: 0; padding: 0; }
         
@@ -15,15 +130,6 @@ export default function App() {
           background: #000;
         }
         
-        @media (min-width: 768px) {
-          * {
-            cursor: url("/cat-cursor.png"), auto;
-          }
-          
-          a, button {
-            cursor: url("/cat-cursor.png"), pointer;
-          }
-        }
         
         @keyframes float {
           0%, 100% { transform: translateY(0); }
@@ -327,6 +433,379 @@ export default function App() {
           color: rgba(255, 255, 255, 0.5);
           margin-top: 1rem;
           animation: countUp 1s ease-out 0.5s both;
+        }
+        
+        /* AI Calculator */
+        @keyframes borderGlow {
+          0%, 100% { opacity: 0.5; }
+          50% { opacity: 1; }
+        }
+        
+        @keyframes scanLine {
+          0% { transform: translateY(-100%); }
+          100% { transform: translateY(100vh); }
+        }
+        
+        @keyframes dataStream {
+          0% { background-position: 0% 50%; }
+          100% { background-position: 200% 50%; }
+        }
+        
+        @keyframes typewriter {
+          from { width: 0; }
+          to { width: 100%; }
+        }
+        
+        @keyframes resultSlam {
+          0% { transform: scale(0.3); opacity: 0; }
+          50% { transform: scale(1.1); }
+          100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .calculator-section {
+          padding: 6rem 2rem;
+          position: relative;
+          overflow: hidden;
+        }
+        
+        .calculator-container {
+          max-width: 550px;
+          margin: 0 auto;
+          text-align: center;
+          position: relative;
+        }
+        
+        .calculator-card {
+          position: relative;
+          background: linear-gradient(145deg, rgba(20, 20, 35, 0.9), rgba(10, 10, 20, 0.95));
+          border-radius: 24px;
+          padding: 3rem 2rem;
+          border: 1px solid rgba(244, 114, 182, 0.2);
+          box-shadow: 
+            0 0 60px rgba(244, 114, 182, 0.1),
+            0 0 100px rgba(168, 85, 247, 0.05),
+            inset 0 1px 0 rgba(255, 255, 255, 0.05);
+          overflow: hidden;
+        }
+        
+        .calculator-card::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 3px;
+          background: linear-gradient(90deg, transparent, #f472b6, #a855f7, #f472b6, transparent);
+          animation: borderGlow 2s ease-in-out infinite;
+        }
+        
+        .calculator-card::after {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: linear-gradient(transparent 50%, rgba(244, 114, 182, 0.02) 50%);
+          background-size: 100% 4px;
+          pointer-events: none;
+          opacity: 0.3;
+        }
+        
+        .calculator-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.5rem;
+          background: rgba(244, 114, 182, 0.1);
+          border: 1px solid rgba(244, 114, 182, 0.3);
+          padding: 0.4rem 1rem;
+          border-radius: 50px;
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 0.7rem;
+          color: #f472b6;
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+          margin-bottom: 1.5rem;
+        }
+        
+        .badge-dot {
+          width: 6px;
+          height: 6px;
+          background: #4ade80;
+          border-radius: 50%;
+          animation: pulse 1.5s ease-in-out infinite;
+        }
+        
+        .calculator-title {
+          font-family: 'Dela Gothic One', Impact, sans-serif;
+          font-size: clamp(1.5rem, 5vw, 2.2rem);
+          text-transform: uppercase;
+          color: #fff;
+          margin-bottom: 0.5rem;
+          position: relative;
+        }
+        
+        .calculator-subtitle {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 0.8rem;
+          color: rgba(255, 255, 255, 0.4);
+          margin-bottom: 2rem;
+          letter-spacing: 0.05em;
+        }
+        
+        .calculator-form {
+          display: flex;
+          flex-direction: column;
+          gap: 0.75rem;
+          margin-bottom: 1.5rem;
+        }
+        
+        .input-wrapper {
+          position: relative;
+        }
+        
+        .input-label {
+          position: absolute;
+          left: 1rem;
+          top: -0.5rem;
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 0.6rem;
+          color: rgba(244, 114, 182, 0.7);
+          background: rgba(15, 15, 25, 1);
+          padding: 0 0.5rem;
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+        }
+        
+        .calculator-input {
+          width: 100%;
+          padding: 1.1rem 1.5rem;
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 0.95rem;
+          color: #fff;
+          background: rgba(0, 0, 0, 0.3);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 12px;
+          outline: none;
+          transition: all 0.3s ease;
+          box-sizing: border-box;
+        }
+        
+        .calculator-input::placeholder {
+          color: rgba(255, 255, 255, 0.25);
+          font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .calculator-input:focus {
+          border-color: rgba(244, 114, 182, 0.5);
+          background: rgba(0, 0, 0, 0.4);
+          box-shadow: 0 0 20px rgba(244, 114, 182, 0.1);
+        }
+        
+        .calculator-btn {
+          padding: 1.1rem 2rem;
+          font-family: 'Dela Gothic One', system-ui, sans-serif;
+          font-size: 0.95rem;
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+          color: #000;
+          background: linear-gradient(135deg, #f472b6, #a855f7);
+          border: none;
+          border-radius: 12px;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          position: relative;
+          overflow: hidden;
+          margin-top: 0.5rem;
+        }
+        
+        .calculator-btn::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: -100%;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+          transition: left 0.5s ease;
+        }
+        
+        .calculator-btn:hover::before {
+          left: 100%;
+        }
+        
+        .calculator-btn:hover {
+          transform: translateY(-2px);
+          box-shadow: 
+            0 10px 40px rgba(244, 114, 182, 0.4),
+            0 0 60px rgba(168, 85, 247, 0.2);
+        }
+        
+        .calculator-btn:disabled {
+          opacity: 0.4;
+          cursor: not-allowed;
+          transform: none;
+        }
+        
+        .calculator-loading {
+          padding: 2.5rem 1rem;
+          text-align: center;
+        }
+        
+        .loading-text {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 0.85rem;
+          color: #f472b6;
+          margin-bottom: 1.5rem;
+          animation: pulse 1s ease-in-out infinite;
+        }
+        
+        .loading-bars {
+          display: flex;
+          justify-content: center;
+          gap: 6px;
+        }
+        
+        .loading-bar {
+          width: 4px;
+          height: 30px;
+          background: linear-gradient(180deg, #f472b6, #a855f7);
+          border-radius: 2px;
+          animation: loadingBar 0.6s ease-in-out infinite;
+        }
+        
+        .loading-bar:nth-child(2) { animation-delay: 0.08s; }
+        .loading-bar:nth-child(3) { animation-delay: 0.16s; }
+        .loading-bar:nth-child(4) { animation-delay: 0.24s; }
+        .loading-bar:nth-child(5) { animation-delay: 0.32s; }
+        .loading-bar:nth-child(6) { animation-delay: 0.4s; }
+        .loading-bar:nth-child(7) { animation-delay: 0.48s; }
+        
+        @keyframes loadingBar {
+          0%, 100% { transform: scaleY(0.4); opacity: 0.4; }
+          50% { transform: scaleY(1); opacity: 1; }
+        }
+        
+        .calculator-result {
+          padding: 2rem;
+          background: rgba(0, 0, 0, 0.3);
+          border: 1px solid rgba(74, 222, 128, 0.2);
+          border-radius: 16px;
+          animation: resultSlam 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+          position: relative;
+        }
+        
+        .calculator-result::before {
+          content: '✓ ANALYSIS COMPLETE';
+          display: block;
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 0.65rem;
+          color: #4ade80;
+          letter-spacing: 0.15em;
+          margin-bottom: 1rem;
+          opacity: 0.8;
+        }
+        
+        .result-verdict {
+          font-family: 'Dela Gothic One', Impact, sans-serif;
+          font-size: clamp(1.4rem, 5vw, 2rem);
+          color: #4ade80;
+          margin-bottom: 0.25rem;
+          text-shadow: 0 0 30px rgba(74, 222, 128, 0.5);
+        }
+        
+        .result-number {
+          font-family: 'Dela Gothic One', Impact, sans-serif;
+          font-size: clamp(3rem, 12vw, 5rem);
+          color: #4ade80;
+          line-height: 1;
+          text-shadow: 0 0 40px rgba(74, 222, 128, 0.5);
+        }
+        
+        .result-projection {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 0.9rem;
+          color: rgba(255, 255, 255, 0.5);
+          margin-bottom: 1.5rem;
+        }
+        
+        .result-highlight {
+          color: #f472b6;
+          font-weight: 600;
+        }
+        
+        .result-reason {
+          font-family: system-ui, sans-serif;
+          font-size: 0.9rem;
+          color: rgba(255, 255, 255, 0.6);
+          line-height: 1.7;
+          margin-bottom: 1.5rem;
+          font-style: italic;
+        }
+        
+        .result-actions {
+          display: flex;
+          flex-direction: column;
+          gap: 0.75rem;
+          align-items: center;
+        }
+        
+        .get-kitty-btn {
+          display: inline-block;
+          background: linear-gradient(135deg, #f472b6, #a855f7);
+          color: white;
+          font-family: 'Dela Gothic One', Impact, sans-serif;
+          font-size: 1rem;
+          padding: 1rem 2rem;
+          border-radius: 50px;
+          text-decoration: none;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 20px rgba(244, 114, 182, 0.4);
+        }
+        
+        .get-kitty-btn:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 30px rgba(244, 114, 182, 0.6);
+        }
+        
+        .reset-btn {
+          background: transparent;
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          color: rgba(255, 255, 255, 0.5);
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 0.75rem;
+          padding: 0.6rem 1.2rem;
+          border-radius: 6px;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+        }
+        
+        .reset-btn:hover {
+          border-color: rgba(255, 255, 255, 0.4);
+          color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .short-king-message {
+          text-align: center;
+          padding: 2rem 0;
+          animation: resultSlam 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        .short-king-text {
+          font-family: 'Dela Gothic One', Impact, sans-serif;
+          font-size: clamp(1.3rem, 5vw, 1.8rem);
+          color: #f472b6;
+          margin-bottom: 0.5rem;
+        }
+        
+        .short-king-signature {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 0.85rem;
+          color: rgba(255, 255, 255, 0.5);
+          font-style: italic;
+          margin-bottom: 1.5rem;
         }
         
         .stats-description {
@@ -791,6 +1270,123 @@ export default function App() {
             <p className="stats-sublabel">When theres a cute little kitty cat in your profile</p>
             
             <p className="stats-bonus">+ 100% chance to pull out of your league</p>
+          </div>
+        </section>
+        
+        <section className="calculator-section">
+          <div className="calculator-container">
+            <div className="calculator-card">
+              <div className="calculator-badge">
+                <span className="badge-dot"></span>
+                AI Model Active
+              </div>
+              <h2 className="calculator-title">Should You Get a Kitten?</h2>
+              <p className="calculator-subtitle">// advanced compatibility analysis v2.4.1</p>
+              
+              {!isCalculating && !result && (
+                <div className="calculator-form">
+                  <div className="input-wrapper">
+                    <span className="input-label">Identity</span>
+                    <input 
+                      type="text" 
+                      placeholder="Enter your name" 
+                      className="calculator-input"
+                      value={kittenName}
+                      onChange={(e) => setKittenName(e.target.value)}
+                    />
+                  </div>
+                  <div className="input-wrapper">
+                    <span className="input-label">Height</span>
+                    <input 
+                      type="text" 
+                      placeholder="e.g. 5'10" 
+                      className="calculator-input"
+                      value={kittenHeight}
+                      onChange={(e) => checkHeight(e.target.value)}
+                    />
+                  </div>
+                  
+                  {isShort ? (
+                    <div className="short-king-message">
+                      <p className="short-king-text">Cmon fam. You NEED a cat.</p>
+                      <p className="short-king-signature">— Walt Boxwell</p>
+                      <a 
+                        href="https://www.petfinder.com/cat-adoption/" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="get-kitty-btn"
+                      >
+                        Get a Kitty →
+                      </a>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="input-wrapper">
+                        <span className="input-label">Current Stats</span>
+                        <input 
+                          type="number" 
+                          placeholder="Avg matches per week" 
+                          className="calculator-input"
+                          value={kittenMatches}
+                          onChange={(e) => setKittenMatches(e.target.value)}
+                        />
+                      </div>
+                      <button 
+                        className="calculator-btn" 
+                        onClick={calculateKitten}
+                        disabled={!kittenName || !kittenHeight || !kittenMatches}
+                      >
+                        Run Analysis
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
+              
+              {isCalculating && (
+                <div className="calculator-loading">
+                  <p className="loading-text">{">"} Processing biometric data...</p>
+                  <div className="loading-bars">
+                    <div className="loading-bar" />
+                    <div className="loading-bar" />
+                    <div className="loading-bar" />
+                    <div className="loading-bar" />
+                    <div className="loading-bar" />
+                    <div className="loading-bar" />
+                    <div className="loading-bar" />
+                  </div>
+                </div>
+              )}
+            
+              {result && !isCalculating && (
+                <div className="calculator-result">
+                  <p className="result-number">{result.projectedMatches}</p>
+                  <p className="result-verdict">matches/week</p>
+                  <p className="result-projection">
+                    Up from {result.currentMatches} → <span className="result-highlight">{result.multiplier}x increase</span>
+                  </p>
+                  <p className="result-reason">
+                    {result.reason}
+                  </p>
+                  <div className="result-actions">
+                    <a 
+                      href="https://www.petfinder.com/cat-adoption/" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="get-kitty-btn"
+                    >
+                      Get a Kitty →
+                    </a>
+                    <button 
+                      className="reset-btn"
+                      onClick={() => { setResult(null); setKittenName(''); setKittenHeight(''); setKittenMatches(''); }}
+                    >
+                      Run Again
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </section>
         
