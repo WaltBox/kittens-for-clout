@@ -1656,8 +1656,9 @@ export default function App() {
                   </div>
                 </div>
                 
-                {/* Form */}
-                <div className="chat-form-wrapper">
+                {/* Show form OR verdict - not both */}
+                {!chatStarted ? (
+                  <div className="chat-form-wrapper">
                     <div className="chat-form-header">
                       <h2>Consult The Kitten</h2>
                       <p>Enter your stats for divine wisdom</p>
@@ -1698,34 +1699,29 @@ export default function App() {
                         onClick={startChat}
                         disabled={!userName || !userHeight || !userMatches || isLoading}
                       >
-                        {isLoading && messages.length === 0 ? 'Consulting...' : 'Get My Reading'}
+                        {isLoading ? 'Consulting...' : 'Get My Reading'}
                       </button>
                     </div>
                   </div>
-                  
-                  {/* Loading state */}
-                  {messages.length === 0 && isLoading && (
-                    <div className="chat-loading-state">
-                      <div className="loading-avatar"><img src="/all-knowing-kitty.png" alt="The Kitten" /></div>
-                      <div className="loading-text-container">
-                        <p className="loading-main-text">The Kitten is analyzing...</p>
-                        <p className="loading-sub-text">Consulting the ancient data</p>
-                      </div>
-                      <div className="loading-bars">
-                        <div className="loading-bar"></div>
-                        <div className="loading-bar"></div>
-                        <div className="loading-bar"></div>
-                        <div className="loading-bar"></div>
-                        <div className="loading-bar"></div>
-                      </div>
+                ) : messages.length === 0 ? (
+                  /* Loading state */
+                  <div className="chat-loading-state">
+                    <div className="loading-avatar"><img src="/all-knowing-kitty.png" alt="The Kitten" /></div>
+                    <div className="loading-text-container">
+                      <p className="loading-main-text">The Kitten is analyzing...</p>
+                      <p className="loading-sub-text">Consulting the ancient data</p>
                     </div>
-                  )}
-                  
-                  {/* The Verdict */}
-                  {messages.length > 0 && (
-                    <>
-                      <div className="verdict-divider"></div>
-                      <div className="verdict-section">
+                    <div className="loading-bars">
+                      <div className="loading-bar"></div>
+                      <div className="loading-bar"></div>
+                      <div className="loading-bar"></div>
+                      <div className="loading-bar"></div>
+                      <div className="loading-bar"></div>
+                    </div>
+                  </div>
+                ) : (
+                  /* The Verdict */
+                  <div className="verdict-section">
                         <p className="verdict-text">{messages[0]?.content}</p>
                         
                         <div className="match-prediction">
@@ -1753,8 +1749,7 @@ export default function App() {
                           I'd like to respond
                         </button>
                       </div>
-                    </>
-                  )}
+                )}
               </>
               ) : (
                 /* Full Chat Interface - replaces form/verdict */
