@@ -1650,7 +1650,7 @@ export default function App() {
                   <div className="chat-header-left">
                     <div className="chat-avatar"><img src="/all-knowing-kitty.png" alt="The Kitten" /></div>
                     <div className="chat-header-info">
-                      <h3>The Kitten</h3>
+                      <h3>Prometheus</h3>
                       <p><span className="online-dot"></span> {chatStarted ? `Chatting with ${userInfo?.name}` : 'AI-powered wisdom'}</p>
                     </div>
                   </div>
@@ -1757,7 +1757,7 @@ export default function App() {
                   <div className="chat-full-header">
                     <div className="chat-avatar"><img src="/all-knowing-kitty.png" alt="The Kitten" /></div>
                     <div>
-                      <h3>The Kitten</h3>
+                      <h3>Prometheus</h3>
                       <p>Chatting with {userInfo?.name}</p>
                     </div>
                     <button className="back-to-verdict" onClick={() => setChatOpen(false)}>←</button>
