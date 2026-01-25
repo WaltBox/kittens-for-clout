@@ -1654,9 +1654,6 @@ export default function App() {
                       <p><span className="online-dot"></span> {chatStarted ? `Chatting with ${userInfo?.name}` : 'AI-powered wisdom'}</p>
                     </div>
                   </div>
-                  {chatStarted && (
-                    <button className="reset-btn" onClick={resetChat}>Start Over</button>
-                  )}
                 </div>
                 
                 {/* Form */}
@@ -1701,7 +1698,7 @@ export default function App() {
                         onClick={startChat}
                         disabled={!userName || !userHeight || !userMatches || isLoading}
                       >
-                        {isLoading && messages.length === 0 ? 'Consulting...' : chatStarted ? 'Try Again' : 'Get My Reading'}
+                        {isLoading && messages.length === 0 ? 'Consulting...' : 'Get My Reading'}
                       </button>
                     </div>
                   </div>
