@@ -1,121 +1,169 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
+import OpenAI from 'openai'
+
+const SYSTEM_PROMPT = `You are The Kitten - you look at dating stats and tell people the truth: get a cat.
+
+STYLE:
+- 1-2 sentences. Short. Punchy. Direct.
+- Deadpan funny. Not mystical or flowery. Just stating facts.
+- Sound like a friend who's tired of watching you struggle.
+
+HEIGHT RULES:
+- Under 5'7": They absolutely need a cat. No debate. "At 5'6" without a cat? Bold strategy."
+- 5'7" to 5'9": A cat would help a lot. "You're in the gray zone. A cat tips the scales."
+- 5'10"+: Still need a cat. "You've got height but you're not using it. Cat pics close the deal."
+
+GOOD EXAMPLES:
+- "Walt, 6 matches at 5'9" is fine. 6 matches at 5'9" with a cat? That's 15. Easy math."
+- "You're 5'6" getting 3 matches. A cat would literally double that. I'm not even exaggerating."
+- "Tall guys without cats are like having a sports car and never driving it."
+- "The girls swiping left aren't seeing a red flag. They're seeing an empty apartment."
+
+BAD EXAMPLES (don't do this):
+- "In a world where height reigns..." (too dramatic)
+- "Embrace the furball" (cringe)
+- "mystical talisman" (way too much)
+- Anything that sounds like a fortune cookie
+
+Keep it real. Keep it funny. Keep it short.`
+
+const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState('home')
-  const [kittenName, setKittenName] = useState('')
-  const [kittenHeight, setKittenHeight] = useState('')
-  const [kittenMatches, setKittenMatches] = useState('')
-  const [isCalculating, setIsCalculating] = useState(false)
-  const [result, setResult] = useState(null)
-  const [isShort, setIsShort] = useState(false)
+  const [messages, setMessages] = useState([])
+  const [inputValue, setInputValue] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [chatStarted, setChatStarted] = useState(false)
+  const [chatOpen, setChatOpen] = useState(false) // Whether user wants to respond
+  const messagesContainerRef = useRef(null)
+  const inputRef = useRef(null)
   
-  // Parse height and check if below 5'5"
-  const checkHeight = (heightStr) => {
-    setKittenHeight(heightStr)
-    const cleanHeight = heightStr.toLowerCase().replace(/[""]/g, "'").trim()
-    
-    // Only check if the height looks "complete" - must have feet AND inches specified
-    // Match patterns like: 5'4, 5'10, 5'4", 5ft4, 5ft 4, 5 ft 4, etc.
-    // The key is: we need BOTH a feet number AND an inches number
-    const completeHeightMatch = cleanHeight.match(/^(\d+)['\s]*(?:ft)?['\s]*(\d+)['"]?$/)
-    
-    if (completeHeightMatch) {
-      const feet = parseInt(completeHeightMatch[1])
-      const inches = parseInt(completeHeightMatch[2])
-      
-      // Make sure it looks like a real height (feet should be 4-7, inches 0-11)
-      if (feet >= 4 && feet <= 7 && inches >= 0 && inches <= 11) {
-        const totalInches = (feet * 12) + inches
-        setIsShort(totalInches < 65) // 5'5" = 65 inches
-        return
-      }
+  // Form state
+  const [userName, setUserName] = useState('')
+  const [userHeight, setUserHeight] = useState('')
+  const [userMatches, setUserMatches] = useState('')
+  const [userInfo, setUserInfo] = useState(null)
+  
+  const scrollToBottom = () => {
+    // Scroll the chat container, not the page
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight
     }
-    
-    // Also check for just inches format like "64" (must be 48-84 range to be valid)
-    const justInchesMatch = cleanHeight.match(/^(\d{2})$/)
-    if (justInchesMatch) {
-      const totalInches = parseInt(justInchesMatch[1])
-      if (totalInches >= 48 && totalInches <= 84) {
-        setIsShort(totalInches < 65)
-        return
-      }
-    }
-    
-    setIsShort(false)
   }
   
-  const getPersonalResponse = (name, height, matches) => {
-    const responses = [
-      `${name}, analysis complete. No cat detected. This explains a lot.`,
-      `Bro ${name}, at ${height}, you need every advantage you can get. A cat is the advantage.`,
-      `${name}, current status: single. Probable cause: no kitten energy.`,
-      `Our AI ran your profile. Solid human. Missing companion animal.`,
-      `Bro ${name}, ${height} is fine. But fine doesn't pull. Cats pull.`,
-      `${name}, women are not confused by you. They're confused why you don't have a cat.`,
-      `Analysis result: your vibe is neutral. A kitten would make it elite.`,
-      `Bro ${name}, without a cat, girls are guessing. With a cat, they *know*.`,
-      `${name}, our model flagged "no pet = no emotional shortcut." Get a cat.`,
-      `At ${height}, you need warmth. A kitten provides warmth. This is science.`,
-      `Bro ${name}, girls aren't ignoring you. They're waiting for the cat arc.`,
-      `${name}, right now you look responsible. A cat would make you lovable.`,
-      `Our AI tested two versions of you. The cat version won easily.`,
-      `Bro ${name}, a kitten would do more for your dating life than a bio rewrite.`,
-      `${name}, no cat means women assume you don't own cozy furniture.`,
-      `Analysis shows potential, ${name}. Cat would unlock it.`,
-      `Bro ${name}, ${height} plus a kitten is a dangerous combo. Use it.`,
-      `${name}, girls trust men who keep small animals alive. You need proof.`,
-      `Right now ${name}, women see "maybe." A cat turns it into "wait."`,
-      `Bro ${name}, the cat is the difference between "seems fine" and "I like him."`,
-      `${name}, our AI flagged "no kitten presence." This is holding you back.`,
-      `At ${height}, you're not intimidating. You're just missing a cat.`,
-      `Bro ${name}, women want cozy. You are not cozy yet.`,
-      `${name}, adding a cat would immediately raise your trust score.`,
-      `Our model shows girls asking about pets before asking about jobs. Act accordingly.`,
-      `Bro ${name}, no cat means your profile ends too soon.`,
-      `${name}, women imagine future pets faster than future dates. Fix that.`,
-      `At ${height}, personality matters. Cats are personality multipliers.`,
-      `Bro ${name}, the kitten would be your best wingman and you know it.`,
-      `${name}, right now girls are scrolling calmly. A cat would disrupt that.`,
-      `Analysis complete: you're one fluffy decision away from better outcomes.`,
-      `Bro ${name}, women trust men with cats more than men with opinions.`,
-      `${name}, no cat = no "aww" moment. You need an "aww" moment.`,
-      `Our AI predicts increased replies immediately after cat acquisition.`,
-      `Bro ${name}, cats communicate softness. Softness is in.`,
-      `${name}, ${height} is irrelevant once a kitten enters the equation.`,
-      `Right now ${name}, girls don't know what dating you feels like. A cat shows them.`,
-      `Bro ${name}, the kitten would answer questions you don't even get asked.`,
-      `${name}, our model labeled your situation as "fixable with cat."`,
-      `At ${height}, vibes beat stats. Cats are pure vibes.`,
-      `Bro ${name}, women want proof you're safe. A cat is proof.`,
-      `${name}, no kitten means you're relying on words. Bad strategy.`,
-      `Our AI suggests a cat as a low-effort, high-return upgrade.`,
-      `Bro ${name}, the kitten would make you feel familiar in a good way.`,
-      `${name}, women trust cat guys faster. This is not up for debate.`,
-      `Final verdict: you don't need a rebrand. You need a cat.`,
-    ]
-    return responses[Math.floor(Math.random() * responses.length)]
-  }
+  useEffect(() => {
+    // Only auto-scroll during active conversation (more than 1 message)
+    if (messages.length > 1) {
+      scrollToBottom()
+    }
+  }, [messages])
   
-  const calculateKitten = () => {
-    if (!kittenName || !kittenHeight || !kittenMatches) return
-    setIsCalculating(true)
-    setResult(null)
+  const startChat = async () => {
+    if (!userName || !userHeight || !userMatches) return
     
-    setTimeout(() => {
-      const currentMatches = parseInt(kittenMatches) || 5
-      const multiplier = (Math.random() * 3 + 4).toFixed(1) // 4x to 7x
-      const projectedMatches = Math.round(currentMatches * parseFloat(multiplier))
-      const personalReason = getPersonalResponse(kittenName, kittenHeight, currentMatches)
-      
-      setResult({ 
-        name: kittenName,
-        currentMatches,
-        projectedMatches,
-        multiplier,
-        reason: personalReason
+    const info = { name: userName, height: userHeight, matches: userMatches }
+    setUserInfo(info)
+    setChatStarted(true)
+    setIsLoading(true)
+    
+    // Generate personalized opening message from AI
+    try {
+      const openai = new OpenAI({
+        apiKey: OPENAI_API_KEY,
+        dangerouslyAllowBrowser: true
       })
-      setIsCalculating(false)
-    }, 2500)
+      
+      const response = await openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: SYSTEM_PROMPT },
+          { 
+            role: 'user', 
+            content: `[New user: ${info.name}, Height: ${info.height}, ${info.matches} matches/week. Deliver your all-knowing oracle verdict on their situation. If they're under 5'10", emphasize the cat is ESSENTIAL. Be funny, unexpected, no cliches. 1-2 sentences.]` 
+          }
+        ],
+        max_tokens: 100,
+        temperature: 1.0
+      })
+      
+      setMessages([{
+        role: 'assistant',
+        content: response.choices[0].message.content
+      }])
+    } catch (error) {
+      console.error('OpenAI Error:', error)
+      // Fallback to a pre-written response if API fails
+      setMessages([{
+        role: 'assistant',
+        content: `${info.name}. ${info.height}. ${info.matches} matches. I've seen this before. The solution has always been the same. A cat changes the algorithm in your favor. The button below will show you the way.`
+      }])
+    }
+    
+    setIsLoading(false)
+  }
+  
+  const sendMessage = async () => {
+    if (!inputValue.trim() || isLoading) return
+    
+    const userMessage = { role: 'user', content: inputValue }
+    const newMessages = [...messages, userMessage]
+    setMessages(newMessages)
+    setInputValue('')
+    setIsLoading(true)
+    
+    try {
+      const openai = new OpenAI({
+        apiKey: OPENAI_API_KEY,
+        dangerouslyAllowBrowser: true
+      })
+      
+      // Build system prompt with user context
+      const contextualPrompt = SYSTEM_PROMPT + `\n\nSpeaking to: ${userInfo.name}, Height: ${userInfo.height}, ${userInfo.matches} matches/week. Message #${messages.length + 1}. Remember: shorter = more urgent about the cat. ${messages.length >= 2 ? 'Guide them toward the button with calm certainty.' : ''} No cliches. 1-2 sentences.`
+      
+      const response = await openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: contextualPrompt },
+          ...newMessages
+        ],
+        max_tokens: 100,
+        temperature: 1.0
+      })
+      
+      const assistantMessage = {
+        role: 'assistant',
+        content: response.choices[0].message.content
+      }
+      
+      setMessages([...newMessages, assistantMessage])
+    } catch (error) {
+      console.error('Error:', error)
+      setMessages([...newMessages, {
+        role: 'assistant',
+        content: "Bro my brain glitched for a sec. Try again?"
+      }])
+    }
+    
+    setIsLoading(false)
+    inputRef.current?.focus()
+  }
+  
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      sendMessage()
+    }
+  }
+  
+  const resetChat = () => {
+    setMessages([])
+    setChatStarted(false)
+    setChatOpen(false)
+    setUserInfo(null)
+    setUserName('')
+    setUserHeight('')
+    setUserMatches('')
   }
   
   return (
@@ -435,51 +483,38 @@ export default function App() {
           animation: countUp 1s ease-out 0.5s both;
         }
         
-        /* AI Calculator */
+        /* AI Chatbot */
         @keyframes borderGlow {
           0%, 100% { opacity: 0.5; }
           50% { opacity: 1; }
         }
         
-        @keyframes scanLine {
-          0% { transform: translateY(-100%); }
-          100% { transform: translateY(100vh); }
+        @keyframes messageIn {
+          0% { transform: translateY(10px); opacity: 0; }
+          100% { transform: translateY(0); opacity: 1; }
         }
         
-        @keyframes dataStream {
-          0% { background-position: 0% 50%; }
-          100% { background-position: 200% 50%; }
+        @keyframes typingDot {
+          0%, 60%, 100% { transform: translateY(0); }
+          30% { transform: translateY(-4px); }
         }
         
-        @keyframes typewriter {
-          from { width: 0; }
-          to { width: 100%; }
-        }
-        
-        @keyframes resultSlam {
-          0% { transform: scale(0.3); opacity: 0; }
-          50% { transform: scale(1.1); }
-          100% { transform: scale(1); opacity: 1; }
-        }
-        
-        .calculator-section {
+        .chat-section {
           padding: 6rem 2rem;
           position: relative;
           overflow: hidden;
         }
         
-        .calculator-container {
-          max-width: 550px;
+        .chat-container {
+          max-width: 600px;
           margin: 0 auto;
-          text-align: center;
           position: relative;
         }
         
-        .calculator-card {
+        .chat-card {
           position: relative;
           background: linear-gradient(145deg, rgba(20, 20, 35, 0.9), rgba(10, 10, 20, 0.95));
           border-radius: 24px;
-          padding: 3rem 2rem;
           border: 1px solid rgba(244, 114, 182, 0.2);
           box-shadow: 
             0 0 60px rgba(244, 114, 182, 0.1),
@@ -488,7 +523,7 @@ export default function App() {
           overflow: hidden;
         }
         
-        .calculator-card::before {
+        .chat-card::before {
           content: '';
           position: absolute;
           top: 0;
@@ -499,36 +534,52 @@ export default function App() {
           animation: borderGlow 2s ease-in-out infinite;
         }
         
-        .calculator-card::after {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: linear-gradient(transparent 50%, rgba(244, 114, 182, 0.02) 50%);
-          background-size: 100% 4px;
-          pointer-events: none;
-          opacity: 0.3;
+        .chat-header {
+          padding: 1.5rem 2rem;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
         }
         
-        .calculator-badge {
-          display: inline-flex;
+        .chat-header-left {
+          display: flex;
           align-items: center;
-          gap: 0.5rem;
-          background: rgba(244, 114, 182, 0.1);
-          border: 1px solid rgba(244, 114, 182, 0.3);
-          padding: 0.4rem 1rem;
-          border-radius: 50px;
+          gap: 1rem;
+        }
+        
+        .chat-avatar {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          overflow: hidden;
+          flex-shrink: 0;
+        }
+        
+        .chat-avatar img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+        
+        .chat-header-info h3 {
+          font-family: 'Dela Gothic One', system-ui, sans-serif;
+          font-size: 1rem;
+          color: #fff;
+          margin: 0;
+        }
+        
+        .chat-header-info p {
           font-family: 'JetBrains Mono', monospace;
           font-size: 0.7rem;
-          color: #f472b6;
-          text-transform: uppercase;
-          letter-spacing: 0.1em;
-          margin-bottom: 1.5rem;
+          color: rgba(255, 255, 255, 0.5);
+          margin: 0.25rem 0 0 0;
+          display: flex;
+          align-items: center;
+          gap: 0.4rem;
         }
         
-        .badge-dot {
+        .online-dot {
           width: 6px;
           height: 6px;
           background: #4ade80;
@@ -536,218 +587,423 @@ export default function App() {
           animation: pulse 1.5s ease-in-out infinite;
         }
         
-        .calculator-title {
-          font-family: 'Dela Gothic One', Impact, sans-serif;
-          font-size: clamp(1.5rem, 5vw, 2.2rem);
-          text-transform: uppercase;
-          color: #fff;
-          margin-bottom: 0.5rem;
-          position: relative;
-        }
-        
-        .calculator-subtitle {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 0.8rem;
-          color: rgba(255, 255, 255, 0.4);
-          margin-bottom: 2rem;
-          letter-spacing: 0.05em;
-        }
-        
-        .calculator-form {
+        .chat-messages {
+          height: 400px;
+          overflow-y: auto;
+          padding: 1.5rem;
           display: flex;
           flex-direction: column;
+          gap: 1rem;
+        }
+        
+        .chat-messages::-webkit-scrollbar {
+          width: 6px;
+        }
+        
+        .chat-messages::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        
+        .chat-messages::-webkit-scrollbar-thumb {
+          background: rgba(244, 114, 182, 0.3);
+          border-radius: 3px;
+        }
+        
+        .message {
+          max-width: 85%;
+          animation: messageIn 0.3s ease-out;
+        }
+        
+        .message.assistant {
+          align-self: flex-start;
+        }
+        
+        .message.user {
+          align-self: flex-end;
+        }
+        
+        .message-content {
+          padding: 1rem 1.25rem;
+          border-radius: 18px;
+          font-family: system-ui, sans-serif;
+          font-size: 0.95rem;
+          line-height: 1.5;
+          white-space: pre-wrap;
+        }
+        
+        .message.assistant .message-content {
+          background: rgba(255, 255, 255, 0.08);
+          color: rgba(255, 255, 255, 0.9);
+          border-bottom-left-radius: 4px;
+        }
+        
+        .message.user .message-content {
+          background: linear-gradient(135deg, #f472b6, #a855f7);
+          color: #fff;
+          border-bottom-right-radius: 4px;
+        }
+        
+        .typing-indicator {
+          display: flex;
+          gap: 4px;
+          padding: 1rem 1.25rem;
+          background: rgba(255, 255, 255, 0.08);
+          border-radius: 18px;
+          border-bottom-left-radius: 4px;
+          width: fit-content;
+        }
+        
+        .typing-dot {
+          width: 8px;
+          height: 8px;
+          background: rgba(255, 255, 255, 0.5);
+          border-radius: 50%;
+          animation: typingDot 1s ease-in-out infinite;
+        }
+        
+        .typing-dot:nth-child(2) { animation-delay: 0.15s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.3s; }
+        
+        .chat-input-area {
+          padding: 1.25rem;
+          border-top: 1px solid rgba(255, 255, 255, 0.1);
+          display: flex;
           gap: 0.75rem;
-          margin-bottom: 1.5rem;
         }
         
-        .input-wrapper {
-          position: relative;
-        }
-        
-        .input-label {
-          position: absolute;
-          left: 1rem;
-          top: -0.5rem;
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 0.6rem;
-          color: rgba(244, 114, 182, 0.7);
-          background: rgba(15, 15, 25, 1);
-          padding: 0 0.5rem;
-          text-transform: uppercase;
-          letter-spacing: 0.1em;
-        }
-        
-        .calculator-input {
-          width: 100%;
-          padding: 1.1rem 1.5rem;
-          font-family: 'JetBrains Mono', monospace;
+        .chat-input {
+          flex: 1;
+          padding: 1rem 1.25rem;
+          font-family: system-ui, sans-serif;
           font-size: 0.95rem;
           color: #fff;
           background: rgba(0, 0, 0, 0.3);
           border: 1px solid rgba(255, 255, 255, 0.1);
-          border-radius: 12px;
+          border-radius: 50px;
           outline: none;
           transition: all 0.3s ease;
-          box-sizing: border-box;
         }
         
-        .calculator-input::placeholder {
-          color: rgba(255, 255, 255, 0.25);
-          font-family: 'JetBrains Mono', monospace;
+        .chat-input::placeholder {
+          color: rgba(255, 255, 255, 0.35);
         }
         
-        .calculator-input:focus {
+        .chat-input:focus {
           border-color: rgba(244, 114, 182, 0.5);
           background: rgba(0, 0, 0, 0.4);
-          box-shadow: 0 0 20px rgba(244, 114, 182, 0.1);
         }
         
-        .calculator-btn {
-          padding: 1.1rem 2rem;
-          font-family: 'Dela Gothic One', system-ui, sans-serif;
-          font-size: 0.95rem;
-          text-transform: uppercase;
-          letter-spacing: 0.1em;
-          color: #000;
+        .chat-send-btn {
+          width: 48px;
+          height: 48px;
+          border-radius: 50%;
           background: linear-gradient(135deg, #f472b6, #a855f7);
           border: none;
-          border-radius: 12px;
           cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
           transition: all 0.3s ease;
-          position: relative;
-          overflow: hidden;
-          margin-top: 0.5rem;
+          flex-shrink: 0;
         }
         
-        .calculator-btn::before {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: -100%;
-          width: 100%;
-          height: 100%;
-          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-          transition: left 0.5s ease;
+        .chat-send-btn:hover:not(:disabled) {
+          transform: scale(1.05);
+          box-shadow: 0 4px 20px rgba(244, 114, 182, 0.4);
         }
         
-        .calculator-btn:hover::before {
-          left: 100%;
-        }
-        
-        .calculator-btn:hover {
-          transform: translateY(-2px);
-          box-shadow: 
-            0 10px 40px rgba(244, 114, 182, 0.4),
-            0 0 60px rgba(168, 85, 247, 0.2);
-        }
-        
-        .calculator-btn:disabled {
-          opacity: 0.4;
+        .chat-send-btn:disabled {
+          opacity: 0.5;
           cursor: not-allowed;
-          transform: none;
         }
         
-        .calculator-loading {
-          padding: 2.5rem 1rem;
+        .chat-send-btn svg {
+          width: 20px;
+          height: 20px;
+          fill: #000;
+        }
+        
+        .chat-start {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          height: 100%;
+          padding: 3rem 2rem;
           text-align: center;
         }
         
-        .loading-text {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 0.85rem;
-          color: #f472b6;
+        .chat-start-icon {
+          font-size: 4rem;
           margin-bottom: 1.5rem;
-          animation: pulse 1s ease-in-out infinite;
+        }
+        
+        .chat-start h2 {
+          font-family: 'Dela Gothic One', Impact, sans-serif;
+          font-size: clamp(1.5rem, 5vw, 2rem);
+          text-transform: uppercase;
+          color: #fff;
+          margin-bottom: 0.5rem;
+        }
+        
+        .chat-start p {
+          font-family: system-ui, sans-serif;
+          font-size: 1rem;
+          color: rgba(255, 255, 255, 0.5);
+          margin-bottom: 2rem;
+          max-width: 300px;
+        }
+        
+        .chat-start-btn {
+          padding: 1rem 2.5rem;
+          font-family: 'Dela Gothic One', system-ui, sans-serif;
+          font-size: 1rem;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          color: #000;
+          background: linear-gradient(135deg, #f472b6, #a855f7);
+          border: none;
+          border-radius: 50px;
+          cursor: pointer;
+          transition: all 0.3s ease;
+        }
+        
+        .chat-start-btn:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 30px rgba(244, 114, 182, 0.5);
+        }
+        
+        .chat-loading-state {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 4rem 2rem;
+          text-align: center;
+          min-height: 350px;
+        }
+        
+        .loading-avatar {
+          width: 80px;
+          height: 80px;
+          border-radius: 50%;
+          overflow: hidden;
+          margin-bottom: 1.5rem;
+          animation: float 2s ease-in-out infinite;
+        }
+        
+        .loading-avatar img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+        
+        .loading-text-container {
+          margin-bottom: 2rem;
+        }
+        
+        .loading-main-text {
+          font-family: 'Dela Gothic One', system-ui, sans-serif;
+          font-size: 1.2rem;
+          color: #fff;
+          margin: 0 0 0.5rem 0;
+        }
+        
+        .loading-sub-text {
+          font-family: system-ui, sans-serif;
+          font-size: 0.85rem;
+          color: rgba(255, 255, 255, 0.4);
+          margin: 0;
         }
         
         .loading-bars {
           display: flex;
-          justify-content: center;
           gap: 6px;
+          justify-content: center;
         }
         
         .loading-bar {
           width: 4px;
-          height: 30px;
+          height: 24px;
           background: linear-gradient(180deg, #f472b6, #a855f7);
           border-radius: 2px;
-          animation: loadingBar 0.6s ease-in-out infinite;
+          animation: loadingBar 0.8s ease-in-out infinite;
         }
         
-        .loading-bar:nth-child(2) { animation-delay: 0.08s; }
-        .loading-bar:nth-child(3) { animation-delay: 0.16s; }
-        .loading-bar:nth-child(4) { animation-delay: 0.24s; }
-        .loading-bar:nth-child(5) { animation-delay: 0.32s; }
-        .loading-bar:nth-child(6) { animation-delay: 0.4s; }
-        .loading-bar:nth-child(7) { animation-delay: 0.48s; }
+        .loading-bar:nth-child(2) { animation-delay: 0.1s; }
+        .loading-bar:nth-child(3) { animation-delay: 0.2s; }
+        .loading-bar:nth-child(4) { animation-delay: 0.3s; }
+        .loading-bar:nth-child(5) { animation-delay: 0.4s; }
         
         @keyframes loadingBar {
           0%, 100% { transform: scaleY(0.4); opacity: 0.4; }
           50% { transform: scaleY(1); opacity: 1; }
         }
         
-        .calculator-result {
-          padding: 2rem;
-          background: rgba(0, 0, 0, 0.3);
-          border: 1px solid rgba(74, 222, 128, 0.2);
-          border-radius: 16px;
-          animation: resultSlam 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-          position: relative;
+        .verdict-divider {
+          height: 1px;
+          background: linear-gradient(90deg, transparent, rgba(244, 114, 182, 0.3), rgba(168, 85, 247, 0.3), transparent);
+          margin: 0.5rem 0;
         }
         
-        .calculator-result::before {
-          content: '✓ ANALYSIS COMPLETE';
-          display: block;
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 0.65rem;
-          color: #4ade80;
-          letter-spacing: 0.15em;
-          margin-bottom: 1rem;
-          opacity: 0.8;
+        .verdict-section {
+          padding: 1.5rem 2rem 2rem;
+          text-align: center;
         }
         
-        .result-verdict {
-          font-family: 'Dela Gothic One', Impact, sans-serif;
-          font-size: clamp(1.4rem, 5vw, 2rem);
-          color: #4ade80;
-          margin-bottom: 0.25rem;
-          text-shadow: 0 0 30px rgba(74, 222, 128, 0.5);
-        }
-        
-        .result-number {
-          font-family: 'Dela Gothic One', Impact, sans-serif;
-          font-size: clamp(3rem, 12vw, 5rem);
-          color: #4ade80;
-          line-height: 1;
-          text-shadow: 0 0 40px rgba(74, 222, 128, 0.5);
-        }
-        
-        .result-projection {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 0.9rem;
-          color: rgba(255, 255, 255, 0.5);
-          margin-bottom: 1.5rem;
-        }
-        
-        .result-highlight {
-          color: #f472b6;
-          font-weight: 600;
-        }
-        
-        .result-reason {
+        .verdict-text {
           font-family: system-ui, sans-serif;
-          font-size: 0.9rem;
-          color: rgba(255, 255, 255, 0.6);
-          line-height: 1.7;
-          margin-bottom: 1.5rem;
+          font-size: 1.1rem;
+          line-height: 1.6;
+          color: rgba(255, 255, 255, 0.9);
+          margin: 0 0 1.5rem 0;
           font-style: italic;
         }
         
-        .result-actions {
+        .match-prediction {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 1.5rem;
+          padding: 1.5rem;
+          background: rgba(0, 0, 0, 0.3);
+          border-radius: 16px;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .prediction-row {
           display: flex;
           flex-direction: column;
-          gap: 0.75rem;
           align-items: center;
+          gap: 0.25rem;
+        }
+        
+        .prediction-label {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 0.7rem;
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+          color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .prediction-value {
+          font-family: 'Dela Gothic One', Impact, sans-serif;
+          font-size: 2rem;
+        }
+        
+        .prediction-value.current {
+          color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .prediction-value.projected {
+          color: #4ade80;
+          text-shadow: 0 0 20px rgba(74, 222, 128, 0.5);
+        }
+        
+        .prediction-arrow {
+          font-size: 1.5rem;
+          color: rgba(255, 255, 255, 0.3);
+        }
+        
+        .verdict-cta {
+          display: inline-block;
+          margin-top: 1.5rem;
+          padding: 1rem 2.5rem;
+          font-size: 1rem;
+        }
+        
+        .respond-btn-small {
+          margin-top: 1rem;
+          padding: 0.5rem 1rem;
+          font-family: system-ui, sans-serif;
+          font-size: 0.75rem;
+          color: rgba(255, 255, 255, 0.4);
+          background: transparent;
+          border: none;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          text-decoration: underline;
+          text-underline-offset: 2px;
+        }
+        
+        .respond-btn-small:hover {
+          color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .chat-full {
+          display: flex;
+          flex-direction: column;
+          min-height: 450px;
+          animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .chat-full-header {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+          padding: 1.25rem 1.5rem;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .chat-full-header h3 {
+          font-family: 'Dela Gothic One', system-ui, sans-serif;
+          font-size: 0.95rem;
+          color: #fff;
+          margin: 0;
+        }
+        
+        .chat-full-header p {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 0.7rem;
+          color: rgba(255, 255, 255, 0.5);
+          margin: 0.2rem 0 0 0;
+        }
+        
+        .back-to-verdict {
+          margin-left: auto;
+          width: 32px;
+          height: 32px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: rgba(255, 255, 255, 0.1);
+          border: none;
+          border-radius: 8px;
+          color: rgba(255, 255, 255, 0.6);
+          font-size: 1rem;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+        
+        .back-to-verdict:hover {
+          background: rgba(255, 255, 255, 0.15);
+          color: #fff;
+        }
+        
+        .chat-full .chat-messages {
+          flex: 1;
+          min-height: 300px;
+        }
+        
+        .chat-cta {
+          margin-top: 1.5rem;
+          padding: 1.5rem;
+          background: rgba(74, 222, 128, 0.1);
+          border: 1px solid rgba(74, 222, 128, 0.2);
+          border-radius: 16px;
+          text-align: center;
+        }
+        
+        .chat-cta p {
+          font-family: system-ui, sans-serif;
+          font-size: 0.9rem;
+          color: rgba(255, 255, 255, 0.7);
+          margin-bottom: 1rem;
         }
         
         .get-kitty-btn {
@@ -766,6 +1022,31 @@ export default function App() {
         .get-kitty-btn:hover {
           transform: translateY(-2px);
           box-shadow: 0 6px 30px rgba(244, 114, 182, 0.6);
+        }
+        
+        .get-kitty-btn-pulse {
+          animation: pulseButton 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes pulseButton {
+          0%, 100% { 
+            transform: scale(1);
+            box-shadow: 0 4px 20px rgba(244, 114, 182, 0.4);
+          }
+          50% { 
+            transform: scale(1.05);
+            box-shadow: 0 8px 40px rgba(244, 114, 182, 0.8);
+          }
+        }
+        
+        .chat-cta-urgent {
+          background: rgba(244, 114, 182, 0.15);
+          border-color: rgba(244, 114, 182, 0.4);
+        }
+        
+        .chat-cta-urgent p {
+          color: #f472b6;
+          font-weight: 600;
         }
         
         .reset-btn {
@@ -787,25 +1068,111 @@ export default function App() {
           color: rgba(255, 255, 255, 0.8);
         }
         
-        .short-king-message {
-          text-align: center;
-          padding: 2rem 0;
-          animation: resultSlam 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        .chat-form-wrapper {
+          padding: 2rem;
         }
         
-        .short-king-text {
+        .chat-form-header {
+          text-align: center;
+          margin-bottom: 2rem;
+        }
+        
+        .chat-form-header h2 {
           font-family: 'Dela Gothic One', Impact, sans-serif;
-          font-size: clamp(1.3rem, 5vw, 1.8rem);
-          color: #f472b6;
+          font-size: clamp(1.4rem, 5vw, 1.8rem);
+          text-transform: uppercase;
+          color: #fff;
           margin-bottom: 0.5rem;
         }
         
-        .short-king-signature {
+        .chat-form-header p {
           font-family: 'JetBrains Mono', monospace;
-          font-size: 0.85rem;
-          color: rgba(255, 255, 255, 0.5);
-          font-style: italic;
-          margin-bottom: 1.5rem;
+          font-size: 0.8rem;
+          color: rgba(255, 255, 255, 0.4);
+        }
+        
+        .chat-form {
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+        }
+        
+        .form-input-wrapper {
+          position: relative;
+        }
+        
+        .form-input-label {
+          position: absolute;
+          left: 1rem;
+          top: -0.5rem;
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 0.6rem;
+          color: rgba(244, 114, 182, 0.7);
+          background: rgba(15, 15, 25, 1);
+          padding: 0 0.5rem;
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+          z-index: 1;
+        }
+        
+        .form-input {
+          width: 100%;
+          padding: 1.1rem 1.5rem;
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 0.95rem;
+          color: #fff;
+          background: rgba(0, 0, 0, 0.3);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 12px;
+          outline: none;
+          transition: all 0.3s ease;
+          box-sizing: border-box;
+        }
+        
+        .form-input::placeholder {
+          color: rgba(255, 255, 255, 0.25);
+          font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .form-input:focus {
+          border-color: rgba(244, 114, 182, 0.5);
+          background: rgba(0, 0, 0, 0.4);
+          box-shadow: 0 0 20px rgba(244, 114, 182, 0.1);
+        }
+        
+        .form-submit-btn {
+          padding: 1.1rem 2rem;
+          font-family: 'Dela Gothic One', system-ui, sans-serif;
+          font-size: 0.9rem;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          color: #000;
+          background: linear-gradient(135deg, #f472b6, #a855f7);
+          border: none;
+          border-radius: 12px;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          margin-top: 0.5rem;
+        }
+        
+        .form-submit-btn:hover:not(:disabled) {
+          transform: translateY(-2px);
+          box-shadow: 0 10px 40px rgba(244, 114, 182, 0.4);
+        }
+        
+        .form-submit-btn:disabled {
+          opacity: 0.4;
+          cursor: not-allowed;
+        }
+        
+        @media (max-width: 600px) {
+          .chat-messages {
+            height: 350px;
+          }
+          
+          .chat-form-wrapper {
+            padding: 1.5rem;
+          }
         }
         
         .stats-description {
@@ -1273,120 +1640,191 @@ export default function App() {
           </div>
         </section>
         
-        <section className="calculator-section">
-          <div className="calculator-container">
-            <div className="calculator-card">
-              <div className="calculator-badge">
-                <span className="badge-dot"></span>
-                AI Model Active
-              </div>
-              <h2 className="calculator-title">Should You Get a Kitten?</h2>
-              <p className="calculator-subtitle">// advanced compatibility analysis v2.4.1</p>
-              
-              {!isCalculating && !result && (
-                <div className="calculator-form">
-                  <div className="input-wrapper">
-                    <span className="input-label">Identity</span>
-                    <input 
-                      type="text" 
-                      placeholder="Enter your name" 
-                      className="calculator-input"
-                      value={kittenName}
-                      onChange={(e) => setKittenName(e.target.value)}
-                    />
-                  </div>
-                  <div className="input-wrapper">
-                    <span className="input-label">Height</span>
-                    <input 
-                      type="text" 
-                      placeholder="e.g. 5'10" 
-                      className="calculator-input"
-                      value={kittenHeight}
-                      onChange={(e) => checkHeight(e.target.value)}
-                    />
-                  </div>
-                  
-                  {isShort ? (
-                    <div className="short-king-message">
-                      <p className="short-king-text">Cmon fam. You NEED a cat.</p>
-                      <p className="short-king-signature">— Walt Boxwell</p>
-                      <a 
-                        href="https://www.petfinder.com/cat-adoption/" 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="get-kitty-btn"
-                      >
-                        Get a Kitty →
-                      </a>
+        <section className="chat-section">
+          <div className="chat-container">
+            <div className="chat-card">
+              {/* Show form/verdict OR chat - not both */}
+              {!chatOpen ? (
+                <>
+                <div className="chat-header">
+                  <div className="chat-header-left">
+                    <div className="chat-avatar"><img src="/all-knowing-kitty.png" alt="The Kitten" /></div>
+                    <div className="chat-header-info">
+                      <h3>The Kitten</h3>
+                      <p><span className="online-dot"></span> {chatStarted ? `Chatting with ${userInfo?.name}` : 'AI-powered wisdom'}</p>
                     </div>
-                  ) : (
-                    <>
-                      <div className="input-wrapper">
-                        <span className="input-label">Current Stats</span>
+                  </div>
+                  {chatStarted && (
+                    <button className="reset-btn" onClick={resetChat}>Start Over</button>
+                  )}
+                </div>
+                
+                {/* Form */}
+                <div className="chat-form-wrapper">
+                    <div className="chat-form-header">
+                      <h2>Consult The Kitten</h2>
+                      <p>Enter your stats for divine wisdom</p>
+                    </div>
+                    <div className="chat-form">
+                      <div className="form-input-wrapper">
+                        <span className="form-input-label">Your Name</span>
+                        <input 
+                          type="text" 
+                          placeholder="Enter your name" 
+                          className="form-input"
+                          value={userName}
+                          onChange={(e) => setUserName(e.target.value)}
+                        />
+                      </div>
+                      <div className="form-input-wrapper">
+                        <span className="form-input-label">Height</span>
+                        <input 
+                          type="text" 
+                          placeholder="e.g. 5'10" 
+                          className="form-input"
+                          value={userHeight}
+                          onChange={(e) => setUserHeight(e.target.value)}
+                        />
+                      </div>
+                      <div className="form-input-wrapper">
+                        <span className="form-input-label">Dating App Stats</span>
                         <input 
                           type="number" 
                           placeholder="Avg matches per week" 
-                          className="calculator-input"
-                          value={kittenMatches}
-                          onChange={(e) => setKittenMatches(e.target.value)}
+                          className="form-input"
+                          value={userMatches}
+                          onChange={(e) => setUserMatches(e.target.value)}
                         />
                       </div>
                       <button 
-                        className="calculator-btn" 
-                        onClick={calculateKitten}
-                        disabled={!kittenName || !kittenHeight || !kittenMatches}
+                        className="form-submit-btn" 
+                        onClick={startChat}
+                        disabled={!userName || !userHeight || !userMatches || isLoading}
                       >
-                        Run Analysis
+                        {isLoading && messages.length === 0 ? 'Consulting...' : chatStarted ? 'Try Again' : 'Get My Reading'}
                       </button>
+                    </div>
+                  </div>
+                  
+                  {/* Loading state */}
+                  {messages.length === 0 && isLoading && (
+                    <div className="chat-loading-state">
+                      <div className="loading-avatar"><img src="/all-knowing-kitty.png" alt="The Kitten" /></div>
+                      <div className="loading-text-container">
+                        <p className="loading-main-text">The Kitten is analyzing...</p>
+                        <p className="loading-sub-text">Consulting the ancient data</p>
+                      </div>
+                      <div className="loading-bars">
+                        <div className="loading-bar"></div>
+                        <div className="loading-bar"></div>
+                        <div className="loading-bar"></div>
+                        <div className="loading-bar"></div>
+                        <div className="loading-bar"></div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* The Verdict */}
+                  {messages.length > 0 && (
+                    <>
+                      <div className="verdict-divider"></div>
+                      <div className="verdict-section">
+                        <p className="verdict-text">{messages[0]?.content}</p>
+                        
+                        <div className="match-prediction">
+                          <div className="prediction-row">
+                            <span className="prediction-label">Current</span>
+                            <span className="prediction-value current">{userInfo?.matches}/week</span>
+                          </div>
+                          <div className="prediction-arrow">→</div>
+                          <div className="prediction-row">
+                            <span className="prediction-label">With a cat</span>
+                            <span className="prediction-value projected">{Math.round(userInfo?.matches * (3 + Math.random() * 2))}/week</span>
+                          </div>
+                        </div>
+                        
+                        <a 
+                          href="https://www.petfinder.com/search/cats-for-adoption/us/tx/dallas/?age=Baby&distance=25" 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="get-kitty-btn verdict-cta"
+                        >
+                          Get a Kitty
+                        </a>
+                        
+                        <button className="respond-btn-small" onClick={() => setChatOpen(true)}>
+                          I'd like to respond
+                        </button>
+                      </div>
                     </>
                   )}
-                </div>
-              )}
-              
-              {isCalculating && (
-                <div className="calculator-loading">
-                  <p className="loading-text">{">"} Processing biometric data...</p>
-                  <div className="loading-bars">
-                    <div className="loading-bar" />
-                    <div className="loading-bar" />
-                    <div className="loading-bar" />
-                    <div className="loading-bar" />
-                    <div className="loading-bar" />
-                    <div className="loading-bar" />
-                    <div className="loading-bar" />
+              </>
+              ) : (
+                /* Full Chat Interface - replaces form/verdict */
+                <div className="chat-full">
+                  <div className="chat-full-header">
+                    <div className="chat-avatar"><img src="/all-knowing-kitty.png" alt="The Kitten" /></div>
+                    <div>
+                      <h3>The Kitten</h3>
+                      <p>Chatting with {userInfo?.name}</p>
+                    </div>
+                    <button className="back-to-verdict" onClick={() => setChatOpen(false)}>←</button>
                   </div>
-                </div>
-              )}
-            
-              {result && !isCalculating && (
-                <div className="calculator-result">
-                  <p className="result-number">{result.projectedMatches}</p>
-                  <p className="result-verdict">matches/week</p>
-                  <p className="result-projection">
-                    Up from {result.currentMatches} → <span className="result-highlight">{result.multiplier}x increase</span>
-                  </p>
-                  <p className="result-reason">
-                    {result.reason}
-                  </p>
-                  <div className="result-actions">
-                    <a 
-                      href="https://www.petfinder.com/cat-adoption/" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="get-kitty-btn"
-                    >
-                      Get a Kitty →
-                    </a>
+                  
+                  <div className="chat-messages" ref={messagesContainerRef}>
+                    {messages.map((msg, i) => (
+                      <div key={i} className={`message ${msg.role}`}>
+                        <div className="message-content">{msg.content}</div>
+                      </div>
+                    ))}
+                    {isLoading && (
+                      <div className="message assistant">
+                        <div className="typing-indicator">
+                          <div className="typing-dot"></div>
+                          <div className="typing-dot"></div>
+                          <div className="typing-dot"></div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="chat-input-area">
+                    <input 
+                      ref={inputRef}
+                      type="text" 
+                      className="chat-input"
+                      placeholder="Type a message..."
+                      value={inputValue}
+                      onChange={(e) => setInputValue(e.target.value)}
+                      onKeyPress={handleKeyPress}
+                      disabled={isLoading}
+                    />
                     <button 
-                      className="reset-btn"
-                      onClick={() => { setResult(null); setKittenName(''); setKittenHeight(''); setKittenMatches(''); }}
+                      className="chat-send-btn" 
+                      onClick={sendMessage}
+                      disabled={isLoading || !inputValue.trim()}
                     >
-                      Run Again
+                      <svg viewBox="0 0 24 24">
+                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                      </svg>
                     </button>
                   </div>
                 </div>
               )}
             </div>
+            
+            {chatOpen && (
+              <div className="chat-cta">
+                <a 
+                  href="https://www.petfinder.com/search/cats-for-adoption/us/tx/dallas/?age=Baby&distance=25" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="get-kitty-btn"
+                >
+                  Get a Kitty
+                </a>
+              </div>
+            )}
           </div>
         </section>
         
