@@ -853,7 +853,7 @@ export default function App() {
         
         .verdict-text {
           font-family: system-ui, sans-serif;
-          font-size: 1.1rem;
+          font-size: clamp(0.95rem, 3vw, 1.1rem);
           line-height: 1.6;
           color: rgba(255, 255, 255, 0.9);
           margin: 0 0 1.5rem 0;
@@ -864,8 +864,8 @@ export default function App() {
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 1.5rem;
-          padding: 1.5rem;
+          gap: clamp(0.75rem, 3vw, 1.5rem);
+          padding: clamp(1rem, 3vw, 1.5rem);
           background: rgba(0, 0, 0, 0.3);
           border-radius: 16px;
           border: 1px solid rgba(255, 255, 255, 0.1);
@@ -880,7 +880,7 @@ export default function App() {
         
         .prediction-label {
           font-family: 'JetBrains Mono', monospace;
-          font-size: 0.7rem;
+          font-size: clamp(0.55rem, 2vw, 0.7rem);
           text-transform: uppercase;
           letter-spacing: 0.1em;
           color: rgba(255, 255, 255, 0.5);
@@ -888,7 +888,7 @@ export default function App() {
         
         .prediction-value {
           font-family: 'Dela Gothic One', Impact, sans-serif;
-          font-size: 2rem;
+          font-size: clamp(1.2rem, 5vw, 2rem);
         }
         
         .prediction-value.current {
@@ -901,7 +901,7 @@ export default function App() {
         }
         
         .prediction-arrow {
-          font-size: 1.5rem;
+          font-size: clamp(1rem, 3vw, 1.5rem);
           color: rgba(255, 255, 255, 0.3);
         }
         
